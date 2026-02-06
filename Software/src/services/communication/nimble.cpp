@@ -11,7 +11,9 @@
 #include "command.hpp"
 #include "command/commands.hpp"
 #include "config.hpp"
+#if GPIO_SERVICE_ENABLED
 #include "gpio.hpp"
+#endif
 #include "ossm/OSSM.h"
 #include "patterns.hpp"
 #include "services/led.h"
@@ -306,10 +308,10 @@ void initNimble() {
                                NimBLEUUID(CHARACTERISTIC_PATTERNS_UUID));
     initPatternDataCharacteristic(
         pService, NimBLEUUID(CHARACTERISTIC_GET_PATTERN_DATA_UUID));
-
+#if GPIO_SERVICE_ENABLED
     // GPIO write/read characteristic
     initGPIOCharacteristic(pService, NimBLEUUID(CHARACTERISTIC_GPIO_UUID));
-
+#endif
     // Start the services
     pService->start();
 

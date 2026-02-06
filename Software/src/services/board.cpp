@@ -8,10 +8,12 @@ void initBoard() {
     pinMode(Pins::Remote::encoderSwitch,
             INPUT_PULLDOWN);  // Rotary Encoder Pushbutton
 
+#if GPIO_SERVICE_ENABLED
     pinMode(Pins::GPIO::pin1, OUTPUT);
     pinMode(Pins::GPIO::pin2, OUTPUT);
     pinMode(Pins::GPIO::pin3, OUTPUT);
     pinMode(Pins::GPIO::pin4, OUTPUT);
+#endif
 
     pinMode(Pins::Driver::motorEnablePin, OUTPUT);
     pinMode(Pins::Wifi::resetPin, INPUT_PULLDOWN);
