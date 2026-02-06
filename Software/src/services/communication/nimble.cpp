@@ -10,7 +10,9 @@
 #include "command.hpp"
 #include "command/commands.hpp"
 #include "config.hpp"
+#if GPIO_SERVICE_ENABLED
 #include "gpio.hpp"
+#endif
 #include "ossm/OSSM.h"
 #include "pairing.hpp"
 #include "patterns.hpp"
@@ -307,8 +309,10 @@ void initNimble() {
     initPatternDataCharacteristic(
         pService, NimBLEUUID(CHARACTERISTIC_GET_PATTERN_DATA_UUID));
 
+#if GPIO_SERVICE_ENABLED
     // GPIO write/read characteristic
     initGPIOCharacteristic(pService, NimBLEUUID(CHARACTERISTIC_GPIO_UUID));
+#endif
 
     // Pairing characteristic — BLE one-click pairing from the dashboard
     initPairingCharacteristic(pService,

@@ -18,6 +18,8 @@
  *
  * ```
  */
+#ifndef BOARD_VERSION
+#define GPIO_SERVICE_ENABLED 1
 
 namespace Pins {
 
@@ -92,5 +94,8 @@ namespace Pins {
         constexpr int encoderStepsPerNotch = 2;
     }
 }
+#elif BOARD_VERSION == 4
+    #include "Pins_v4.h"
+#endif
 
 #endif  // OSSM_SOFTWARE_PINS_CPP
