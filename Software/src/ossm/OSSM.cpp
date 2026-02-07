@@ -28,7 +28,7 @@ OSSM::OSSM(U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display,
           sml::sm<OSSMStateMachine, sml::thread_safe<ESP32RecursiveMutex>,
                   sml::logger<StateLogger>>>(logger, *this)) {
     // All initializations are done, so start the state machine.
-    sm->process_event(Done{});
+    sm->process_event(InitDone{});
 }
 
 /**

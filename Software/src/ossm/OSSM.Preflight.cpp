@@ -39,7 +39,7 @@ void OSSM::drawPreflightTask(void *pvParameters) {
             getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
 #endif
         if (speedPercentage < Config::Advanced::commandDeadZonePercentage) {
-            ossm->sm->process_event(Done{});
+            ossm->sm->process_event(PreflightDone{});
             break;
         };
 
