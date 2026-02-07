@@ -25,10 +25,9 @@ void OSSM::drawPreflightTask(void *pvParameters) {
      * less, the state machine will be allowed to continue.
      */
 
-    auto isInPreflight = [](OSSM *ossm) {
-        // Add your preflight checks states here.
-        return ossm->sm->is("simplePenetration.preflight"_s) ||
-               ossm->sm->is("strokeEngine.preflight"_s);
+    auto isInPreflight = [ossm]() {
+        return ossm->isInMode(OSSMMode::SIMPLE_PENETRATION) ||
+               ossm->isInMode(OSSMMode::STROKE_ENGINE);
     };
 
     do {
@@ -56,7 +55,7 @@ void OSSM::drawPreflightTask(void *pvParameters) {
         }
 
         vTaskDelay(100);
-    } while (isInPreflight(ossm));
+    } while (isInPreflight());
 
     vTaskDelete(nullptr);
 };

@@ -35,6 +35,8 @@ struct LanguageStruct {
     const char* YouShouldNotBeHere;
     const char* StrokeEngineDescriptions[7];
     const char* StrokeEngineNames[7];
+    const char* CalibrateLength;
+    const char* SaveCalibration;
 };
 
 #endif  // OSSM_SOFTWARE_LANGUAGESTRUCT_H

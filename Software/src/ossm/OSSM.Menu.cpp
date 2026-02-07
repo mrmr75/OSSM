@@ -27,17 +27,16 @@ void OSSM::drawMenuTask(void *pvParameters) {
 
     // get the encoder position
 
-    auto isInCorrectState = [](OSSM *ossm) {
-        // Add any states that you want to support here.
-        return ossm->sm->is("menu"_s) || ossm->sm->is("menu.idle"_s);
+    auto isInCorrectState = [ossm]() {
+        return ossm->isInMode(OSSMMode::MENU);
     };
 
-    while (isInCorrectState(ossm)) {
+    while (isInCorrectState()) {
         wl_status_t newWifiState = WiFiClass::status();
-        
+
         // Force redraw on first draw or when conditions change
         bool shouldRedraw = isFirstDraw || ossm->encoder.encoderChanged() || (wifiState != newWifiState);
-        
+
         if (!shouldRedraw) {
             vTaskDelay(50);
             continue;
@@ -122,7 +121,7 @@ void OSSM::drawMenuTask(void *pvParameters) {
     // Clear header icons when exiting menu
     if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
         clearIcons(); // Clear the header icons
-        ossm->display.setMaxClipWindow(); // Reset clipping 
+        ossm->display.setMaxClipWindow(); // Reset clipping
         ossm->display.sendBuffer(); // Send the cleared buffer to display
         xSemaphoreGive(displayMutex);
     }

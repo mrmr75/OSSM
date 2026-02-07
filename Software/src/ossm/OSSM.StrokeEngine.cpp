@@ -20,14 +20,11 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
     Stroker.setStroke(0.01f * OSSM::setting.stroke * abs(measuredStrokeMm),
                       true);
 
-    auto isInCorrectState = [](OSSM *ossm) {
-        // Add any states that you want to support here.
-        return ossm->sm->is("strokeEngine"_s) ||
-               ossm->sm->is("strokeEngine.idle"_s) ||
-               ossm->sm->is("strokeEngine.pattern"_s);
+    auto isInCorrectState = [ossm]() {
+        return ossm->isInMode(OSSMMode::STROKE_ENGINE);
     };
 
-    while (isInCorrectState(ossm)) {
+    while (isInCorrectState()) {
         if (isChangeSignificant(lastSetting.speed, OSSM::setting.speed) || ossm->wasLastSpeedCommandFromBLE(true)) {
             //Speed is float, so give a little wiggle room here to assume 0
             if (OSSM::setting.speed < 0.1f) {

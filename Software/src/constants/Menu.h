@@ -9,8 +9,6 @@ enum Menu {
     SimplePenetration,
     StrokeEngine,
     Streaming,
-    UpdateOSSM,
-    WiFiSetup,
     Help,
     Restart,
     NUM_OPTIONS
@@ -18,8 +16,7 @@ enum Menu {
 
 static const char* menuStrings[Menu::NUM_OPTIONS] = {
     UserConfig::language.SimplePenetration, UserConfig::language.StrokeEngine,
-    UserConfig::language.Streaming,         UserConfig::language.Update,
-    UserConfig::language.WiFiSetup,         UserConfig::language.GetHelp,
+    UserConfig::language.Streaming,         UserConfig::language.GetHelp,
     UserConfig::language.Restart,
 };
 

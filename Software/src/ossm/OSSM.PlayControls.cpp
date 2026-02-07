@@ -38,13 +38,10 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
      * a session at max speed. After the user decreases the speed to 0.5% or
      * less, the state machine will be allowed to continue.
      */
-    auto isInCorrectState = [](OSSM *ossm) {
-        // Add any states that you want to support here.
-        return ossm->sm->is("simplePenetration"_s) ||
-               ossm->sm->is("simplePenetration.idle"_s) ||
-               ossm->sm->is("strokeEngine"_s) ||
-               ossm->sm->is("strokeEngine.idle"_s) ||
-               ossm->sm->is("streaming"_s) || ossm->sm->is("streaming.idle"_s);
+    auto isInCorrectState = [ossm]() {
+        return ossm->isInMode(OSSMMode::SIMPLE_PENETRATION) ||
+               ossm->isInMode(OSSMMode::STROKE_ENGINE) ||
+               ossm->isInMode(OSSMMode::STREAMING);
     };
 
     // Line heights
@@ -62,7 +59,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
 
     String headerText = "";
 
-    while (isInCorrectState(ossm)) {
+    while (isInCorrectState()) {
         // Always assume the display should not update.
         shouldUpdateDisplay = false;
 
