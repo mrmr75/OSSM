@@ -18,5 +18,10 @@ namespace UserConfig {
     // When true: BLE speed commands (0-100) are treated as a percentage of the
     // current knob value. When false: BLE speed commands (0-100) are used
     // directly as the speed value
+
+    // OTA Update Configuration
+    static const char* otaPassword = "ossm123";
+    static const char* otaHostname = "OSSM";
 }
+
 #endif  // OSSM_SOFTWARE_USERCONFIG_H

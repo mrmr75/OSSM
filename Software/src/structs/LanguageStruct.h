@@ -37,6 +37,9 @@ struct LanguageStruct {
     const char* StrokeEngineNames[7];
     const char* CalibrateLength;
     const char* SaveCalibration;
+    const char* HTTP_Update;
+    const char* OTA_Update;
+    const char* Back;
 };
 
 #endif  // OSSM_SOFTWARE_LANGUAGESTRUCT_H

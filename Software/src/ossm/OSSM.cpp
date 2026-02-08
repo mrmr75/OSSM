@@ -289,6 +289,132 @@ void OSSM::drawCalibrationMenu() {
                 &Tasks::drawCalibrationMenuTaskH);
 }
 
+void OSSM::drawUpdateMenuTask(void *pvParameters) {
+    bool isFirstDraw = true;
+    OSSM *ossm = (OSSM *)pvParameters;
+
+    int lastEncoderValue = ossm->encoder.readEncoder();
+    int currentEncoderValue;
+    int clicksPerRow = 3;
+    const int maxClicks = clicksPerRow * UpdateMenu::NUM_UPDATE_OPTIONS - 1; // All update menu items
+    // Last Wifi STate
+    wl_status_t wifiState = WL_IDLE_STATUS;
+
+    ossm->encoder.setBoundaries(0, maxClicks, true);
+    ossm->encoder.setAcceleration(0);
+
+    ossm->updateMenuOption = (UpdateMenu)floor(ossm->encoder.readEncoder() / clicksPerRow);
+
+    ossm->encoder.setAcceleration(0);
+
+    auto isInCorrectState = [ossm]() {
+        return ossm->isInMode(OSSMMode::UPDATE_MENU);
+    };
+
+    while (isInCorrectState()) {
+        wl_status_t newWifiState = WiFiClass::status();
+
+        // Force redraw on first draw or when conditions change
+        bool shouldRedraw = isFirstDraw || ossm->encoder.encoderChanged() || (wifiState != newWifiState);
+
+        if (!shouldRedraw) {
+            vTaskDelay(50);
+            continue;
+        }
+
+        wifiState = newWifiState;
+
+        isFirstDraw = false;
+        currentEncoderValue = ossm->encoder.readEncoder();
+
+        if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
+            clearPage(true, false); // Clear page content but preserve header icons
+
+            // Drawing Variables.
+            int leftPadding = 6;  // Padding on the left side of the screen
+            int fontSize = 8;
+            int itemHeight = 20;   // Height of each item
+            int visibleItems = 3;  // Number of items visible on the screen
+
+            auto updateMenuOption = ossm->updateMenuOption;
+            if (abs(currentEncoderValue % maxClicks -
+                    lastEncoderValue % maxClicks) >= clicksPerRow) {
+                lastEncoderValue = currentEncoderValue % maxClicks;
+                updateMenuOption = (UpdateMenu)floor(lastEncoderValue / clicksPerRow);
+
+                ossm->updateMenuOption = updateMenuOption;
+            }
+
+            ESP_LOGD(
+                "Update Menu",
+                "currentEncoderValue: %d, lastEncoderValue: %d, updateMenuOption: %d",
+                currentEncoderValue, lastEncoderValue, updateMenuOption);
+
+            drawShape::scroll(100 * ossm->encoder.readEncoder() /
+                              (clicksPerRow * UpdateMenu::NUM_UPDATE_OPTIONS - 1));
+            const char *menuName = updateMenuStrings[updateMenuOption];
+            ESP_LOGD("Update Menu", "Hovering over state: %s", menuName);
+
+            // Loop around to make an infinite menu.
+            int lastIdx =
+                updateMenuOption - 1 < UpdateMenu::HTTP_Update ? UpdateMenu::BackToCalibration : updateMenuOption - 1;
+            int nextIdx =
+                updateMenuOption + 1 > UpdateMenu::BackToCalibration ? UpdateMenu::HTTP_Update : updateMenuOption + 1;
+
+            ossm->display.setFont(Config::Font::base);
+
+            // Draw the previous item
+            if (lastIdx >= UpdateMenu::HTTP_Update) {
+                ossm->display.drawUTF8(leftPadding, itemHeight * (1),
+                                       updateMenuStrings[lastIdx]);
+            }
+
+            // Draw the next item
+            if (nextIdx <= UpdateMenu::BackToCalibration) {
+                ossm->display.drawUTF8(leftPadding, itemHeight * (3),
+                                       updateMenuStrings[nextIdx]);
+            }
+
+            // Draw the current item
+            ossm->display.setFont(Config::Font::bold);
+            ossm->display.drawUTF8(leftPadding, itemHeight * (2), menuName);
+
+            // Draw a rounded rectangle around the center item
+            ossm->display.drawRFrame(
+                0,
+                itemHeight * (visibleItems / 2) - (fontSize - itemHeight) / 2,
+                120, itemHeight, 2);
+
+            // Draw Shadow.
+            ossm->display.drawLine(2, 2 + fontSize / 2 + 2 * itemHeight, 119,
+                                   2 + fontSize / 2 + 2 * itemHeight);
+            ossm->display.drawLine(120, 4 + fontSize / 2 + itemHeight, 120,
+                                   1 + fontSize / 2 + 2 * itemHeight);
+
+            refreshPage(true, true); // Include both footer and header in refresh
+            xSemaphoreGive(displayMutex);
+        }
+
+        vTaskDelay(1);
+    };
+
+    // Clear header icons when exiting menu
+    if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
+        clearIcons(); // Clear the header icons
+        ossm->display.setMaxClipWindow(); // Reset clipping
+        ossm->display.sendBuffer(); // Send the cleared buffer to display
+        xSemaphoreGive(displayMutex);
+    }
+
+    vTaskDelete(nullptr);
+}
+
+void OSSM::drawUpdateMenu() {
+    int stackSize = 5 * configMINIMAL_STACK_SIZE;
+    xTaskCreate(drawUpdateMenuTask, "drawUpdateMenuTask", stackSize, this, 1,
+                &Tasks::drawUpdateMenuTaskH);
+}
+
 void OSSM::startCalibrationHoming() {
     int stackSize = 10 * configMINIMAL_STACK_SIZE;
     xTaskCreatePinnedToCore(startCalibrationHomingTask, "startCalibrationHomingTask", stackSize, this,
@@ -492,4 +618,85 @@ void OSSM::cleanupNVS() {
         nvsHandle = 0;
         ESP_LOGD("OSSM", "NVS handle closed");
     }
+}
+
+void OSSM::drawInDevelopment() {
+    if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
+        clearPage(true, true);
+        drawStr::title(UserConfig::language.InDevelopment);
+        drawStr::multiLine(0, 20, "This feature is currently in development.");
+        drawStr::multiLine(0, 35, "Please check back in future releases.");
+        refreshPage(true, true);
+        xSemaphoreGive(displayMutex);
+    }
+}
+
+void OSSM::drawOTA() {
+    if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
+        clearPage(true, true);
+        drawStr::title("OTA Update Setup");
+
+        display.setFont(Config::Font::base);
+        display.drawUTF8(0, 24, "Device Info:");
+        display.drawUTF8(0, 36, ("Hostname: " + String(UserConfig::otaHostname)).c_str());
+        display.drawUTF8(0, 48, ("IP: " + OTAService::getIPAddress()).c_str());
+        display.drawUTF8(0, 60, ("Password: " + String(UserConfig::otaPassword)).c_str());
+
+        refreshPage(true, true);
+        xSemaphoreGive(displayMutex);
+    }
+}
+
+void OSSM::drawOTAProgress() {
+    if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
+        clearPage(true, true);
+        drawStr::title("OTA Update In Progress");
+
+        display.setFont(Config::Font::base);
+        display.drawUTF8(0, 24, "Please wait...");
+        display.drawUTF8(0, 36, "Do not power off device");
+
+        // Draw progress bar placeholder
+        display.drawFrame(0, 50, 128, 10);
+        display.drawBox(0, 50, 0, 10); // Empty progress bar
+
+        refreshPage(true, true);
+        xSemaphoreGive(displayMutex);
+    }
+}
+
+void OSSM::drawOTAComplete() {
+    if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
+        clearPage(true, true);
+        drawStr::title("OTA Update Complete");
+
+        display.setFont(Config::Font::base);
+        display.drawUTF8(0, 24, "Firmware updated");
+        display.drawUTF8(0, 36, "successfully!");
+        display.drawUTF8(0, 60, UserConfig::language.Restart);
+
+        refreshPage(true, true);
+        xSemaphoreGive(displayMutex);
+    }
+}
+
+void OSSM::drawOTAFailed() {
+    if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
+        clearPage(true, true);
+        drawStr::title("OTA Update Failed");
+
+        display.setFont(Config::Font::base);
+        display.drawUTF8(0, 24, "Update failed.");
+        display.drawUTF8(0, 36, "Please try again.");
+        display.drawUTF8(0, 60, "Click to retry");
+
+        refreshPage(true, true);
+        xSemaphoreGive(displayMutex);
+    }
+}
+
+void OSSM::startOTA() {
+    ESP_LOGI(UPDATE_TAG, "Starting OTA update");
+    // OTA update will be handled by ArduinoOTA in the main loop
+    // through OTAService::handle()
 }

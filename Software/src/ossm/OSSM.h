@@ -6,6 +6,7 @@
 #include <nvs_flash.h>
 #include <services/board.h>
 #include <services/communication/queue.h>
+#include "services/ota.h"
 
 #include <command/commands.hpp>
 
@@ -21,6 +22,7 @@
 #include "constants/Config.h"
 #include "constants/Menu.h"
 #include "constants/CalibrationMenu.h"
+#include "constants/UpdateMenu.h"
 #include "constants/Pins.h"
 #include "constants/UserConfig.h"
 #include "esp_log.h"
@@ -158,6 +160,18 @@ class OSSM : public OSSMInterface {
             auto drawUpdating = [](OSSM &o) { o.drawUpdating(); };
             auto stopWifiPortal = [](OSSM &o) {};
             auto drawError = [](OSSM &o) { o.drawError(); };
+            auto drawInDevelopment = [](OSSM &o) { o.drawInDevelopment(); };
+            auto setUpdateMenuMode = [](OSSM &o) { o.setMode(OSSM::OSSMMode::UPDATE_MENU); };
+            auto drawUpdateMenu = [](OSSM &o) { o.drawUpdateMenu(); };
+            auto startOTA = [](OSSM &o) { o.startOTA(); };
+            auto drawOTA = [](OSSM &o) { o.drawOTA(); };
+            auto drawOTAProgress = [](OSSM &o) { o.drawOTAProgress(); };
+            auto drawOTAComplete = [](OSSM &o) { o.drawOTAComplete(); };
+            auto drawOTAFailed = [](OSSM &o) { o.drawOTAFailed(); };
+
+            auto isUpdateOption = [](int option) {
+                return [option](OSSM &o) { return static_cast<int>(o.updateMenuOption) == option; };
+            };
 
             // Guard definitions to make the table easier to read.
             auto isStrokeTooShort = [](OSSM &o) {
@@ -258,6 +272,19 @@ class OSSM : public OSSMInterface {
                 "update.idle"_s + buttonPress = "menu"_s,
                 "update.updating"_s  = X,
 
+                // Update menu states
+                "updateMenu"_s / (setUpdateMenuMode, drawUpdateMenu) = "updateMenu.idle"_s,
+                "updateMenu.idle"_s + buttonPress[(isUpdateOption(0))] = "update"_s,
+                "updateMenu.idle"_s + buttonPress[(isUpdateOption(1))] = "updateMenu.ota"_s,
+                "updateMenu.idle"_s + buttonPress[(isUpdateOption(2))] = "calibration.idle"_s,
+                "updateMenu.ota"_s / drawOTA = "updateMenu.ota.idle"_s,
+                "updateMenu.ota.idle"_s + buttonPress = "updateMenu.ota.start"_s,
+                "updateMenu.ota.start"_s / (startOTA, drawOTAProgress) = "updateMenu.ota.inProgress"_s,
+                "updateMenu.ota.inProgress"_s + otaComplete / drawOTAComplete = "updateMenu.ota.complete"_s,
+                "updateMenu.ota.inProgress"_s + otaFailed / drawOTAFailed = "updateMenu.ota.failed"_s,
+                "updateMenu.ota.complete"_s + buttonPress = "menu"_s,
+                "updateMenu.ota.failed"_s + buttonPress = "updateMenu.ota.idle"_s,
+
                 "wifi"_s / drawWiFi = "wifi.idle"_s,
                 "wifi.idle"_s + wifiDone / stopWifiPortal = "menu"_s,
                 "wifi.idle"_s + buttonPress / stopWifiPortal = "menu"_s,
@@ -275,7 +302,7 @@ class OSSM : public OSSMInterface {
                 "calibration"_s / (setCalibrationMode, drawCalibrationMenu) = "calibration.idle"_s,
                 "calibration.idle"_s + buttonPress[(isCalibrationOption(CalibrationMenu::CalibrateLength))] / setCalibrationMode = "calibration.calibrating"_s,
                 "calibration.idle"_s + buttonPress[(isCalibrationOption(CalibrationMenu::SaveCalibration))] / setMenuMode = "menu"_s,
-                "calibration.idle"_s + buttonPress[(isCalibrationOption(CalibrationMenu::UpdateOSSM))] = "update"_s,
+                "calibration.idle"_s + buttonPress[(isCalibrationOption(CalibrationMenu::UpdateOSSM))] = "updateMenu"_s,
                 "calibration.idle"_s + buttonPress[(isCalibrationOption(CalibrationMenu::WiFiSetup))] = "wifi"_s,
                 "calibration.calibrating"_s / (startCalibrationHoming, setCalibrationMode) = "calibration.calibrating.forward"_s,
                 "calibration.calibrating.forward"_s + error / setErrorMode = "error"_s,
@@ -320,7 +347,8 @@ class OSSM : public OSSMInterface {
         CALIBRATION,
         HOMING,
         ERROR,
-        WIFI
+        WIFI,
+        UPDATE_MENU
     };
 
     OSSMMode currentMode = OSSMMode::IDLE;
@@ -409,6 +437,13 @@ class OSSM : public OSSMInterface {
 
     void drawUpdating();
 
+    void drawOTA();
+    void drawOTAProgress();
+    void drawOTAComplete();
+    void drawOTAFailed();
+
+    void startOTA();
+
     void drawPreflight();
     static void drawPreflightTask(void *pvParameters);
 
@@ -421,6 +456,9 @@ class OSSM : public OSSMInterface {
     void startCalibrationHoming();
     static void startCalibrationHomingTask(void *pvParameters);
     void setCalibrated();
+    void drawUpdateMenu();
+    static void drawUpdateMenuTask(void *pvParameters);
+    void drawInDevelopment();
 
     bool isHomed;
 
@@ -442,6 +480,7 @@ class OSSM : public OSSMInterface {
     static SettingPercents setting;
     Menu menuOption;
     CalibrationMenu calibrationMenuOption;
+    UpdateMenu updateMenuOption;
 
     /**
      * ///////////////////////////////////////////

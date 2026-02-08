@@ -6,6 +6,7 @@ namespace Tasks {
     TaskHandle_t drawPlayControlsTaskH = nullptr;
     TaskHandle_t drawPatternControlsTaskH = nullptr;
     TaskHandle_t drawCalibrationMenuTaskH = nullptr;
+    TaskHandle_t drawUpdateMenuTaskH = nullptr;
     TaskHandle_t wmTaskH = nullptr;
     TaskHandle_t drawPreflightTaskH = nullptr;
 

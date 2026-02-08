@@ -11,6 +11,7 @@ namespace Tasks {
     extern TaskHandle_t drawPlayControlsTaskH;
     extern TaskHandle_t drawPatternControlsTaskH;
     extern TaskHandle_t drawCalibrationMenuTaskH;
+    extern TaskHandle_t drawUpdateMenuTaskH;
     extern TaskHandle_t wmTaskH;
     extern TaskHandle_t drawPreflightTaskH;
 
