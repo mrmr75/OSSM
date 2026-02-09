@@ -65,9 +65,6 @@ static const char enUs_StrokeEngineNames_5[] PROGMEM = "Stop'n'Go";
 static const char enUs_StrokeEngineNames_6[] PROGMEM = "Insist";
 static const char enUs_CalibrateLength[] PROGMEM = "Calibrate Length";
 static const char enUs_SaveCalibration[] PROGMEM = "Save Calibration";
-static const char enUs_HTTPUpdate[] PROGMEM = "HTTP Update";
-static const char enUs_OTAUpdate[] PROGMEM = "OTA Update";
-static const char enUs_Back[] PROGMEM = "Back";
 
 static const LanguageStruct enUs = {
     .DeepThroatTrainerSync = enUs_DeepThroatTrainerSync,
@@ -109,11 +106,6 @@ static const LanguageStruct enUs = {
     .StrokeEngineNames = {enUs_StrokeEngineNames_0, enUs_StrokeEngineNames_1,
                           enUs_StrokeEngineNames_2, enUs_StrokeEngineNames_3,
                           enUs_StrokeEngineNames_4, enUs_StrokeEngineNames_5,
-                          enUs_StrokeEngineNames_6},
-    .CalibrateLength = enUs_CalibrateLength,
-    .SaveCalibration = enUs_SaveCalibration,
-    .HTTP_Update = enUs_HTTPUpdate,
-    .OTA_Update = enUs_OTAUpdate,
-    .Back = enUs_Back};
+                          enUs_StrokeEngineNames_6}};
 
 #endif  // OSSM_SOFTWARE_EN_US_H

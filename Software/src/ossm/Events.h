@@ -35,12 +35,6 @@ struct Home {};
 
 struct BleClick {};
 
-// OTA Update Events
-struct OtaStart {};
-struct OtaProgress {};
-struct OtaComplete {};
-struct OtaFailed {};
-
 // Definitions to make the table easier to read.
 static auto bleClick = sml::event<BleClick>;
 static auto buttonPress = sml::event<ButtonPress>;
@@ -55,10 +49,4 @@ static auto wifiDone = sml::event<WifiDone>;
 static auto error = sml::event<Error>;
 static auto emergencyStop = sml::event<EmergencyStop>;
 static auto home = sml::event<Home>;
-
-// OTA Update Event Definitions
-static auto otaStart = sml::event<OtaStart>;
-static auto otaProgress = sml::event<OtaProgress>;
-static auto otaComplete = sml::event<OtaComplete>;
-static auto otaFailed = sml::event<OtaFailed>;
 #endif  // OSSM_SOFTWARE_EVENTS_H

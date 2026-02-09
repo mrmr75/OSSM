@@ -1,7 +1,6 @@
 #include "wm.h"
 
 #include "WiFi.h"
-#include "constants/UserConfig.h"
 
 WiFiManager wm;
 
@@ -13,7 +12,4 @@ void initWM() {
 #else
     WiFi.begin();
 #endif
-
-    // Initialize OTA service after WiFi is set up
-    OTAService::init(UserConfig::otaHostname, UserConfig::otaPassword);
 }

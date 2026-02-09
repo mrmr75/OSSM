@@ -2,7 +2,6 @@
 #define OSSM_WM_H
 
 #include "WiFiManager.h"
-#include "ota.h"
 
 extern WiFiManager wm;
 

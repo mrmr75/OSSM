@@ -85,20 +85,6 @@ void setup() {
         },
         "initNimbleTask", 6 * configMINIMAL_STACK_SIZE, nullptr,
         configMAX_PRIORITIES - 1, nullptr, 0);
-
-    // Initialize OTA service handling
-    xTaskCreatePinnedToCore(
-        [](void *pvParameters) {
-            while (true) {
-                // Handle OTA updates if WiFi is connected
-                if (WiFi.status() == WL_CONNECTED) {
-                    OTAService::handle();
-                }
-                vTaskDelay(pdMS_TO_TICKS(100));
-            }
-        },
-        "otaServiceTask", 4 * configMINIMAL_STACK_SIZE, nullptr,
-        configMAX_PRIORITIES - 2, nullptr, 0);
 };
 
 void loop() { vTaskDelete(nullptr); };

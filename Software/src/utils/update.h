@@ -13,13 +13,6 @@
 #endif
 
 static auto isUpdateAvailable = []() {
-    // For production-s3 with custom firmware URL, skip update check
-    #ifdef CUSTOM_FIRMWARE_URL
-        ESP_LOGD(UPDATE_TAG, "Custom firmware URL configured, skipping update check");
-        return true;
-    #endif
-
-    // Original update check logic for other environments
     // check if we're online
     if (WiFiClass::status() != WL_CONNECTED) {
         ESP_LOGD(UPDATE_TAG, "Not connected to WiFi");
@@ -76,20 +69,14 @@ auto updateOSSM = []() {
     // check if we're online
 
     WiFiClient client;
+    String url = "http://d2sy3zdr3r1gt5.cloudfront.net/firmware.bin";
 
-    #ifdef CUSTOM_FIRMWARE_URL
-        String url = CUSTOM_FIRMWARE_URL;
-        ESP_LOGD(UPDATE_TAG, "Using custom firmware URL: %s", url.c_str());
-    #else
-        String url = "http://d2sy3zdr3r1gt5.cloudfront.net/firmware.bin";
-
-        #ifdef VERSIONDEV
-            url = "http://d2sy3zdr3r1gt5.cloudfront.net/firmware-dev.bin";
-        #endif
-        #ifdef VERSIONSTAGING
-            url = "http://d2sy3zdr3r1gt5.cloudfront.net/firmware-dev.bin";
-        #endif
-    #endif
+#ifdef VERSIONDEV
+    url = "http://d2sy3zdr3r1gt5.cloudfront.net/firmware-dev.bin";
+#endif
+#ifdef VERSIONSTAGING
+    url = "http://d2sy3zdr3r1gt5.cloudfront.net/firmware-dev.bin";
+#endif
 
     t_httpUpdate_return ret = httpUpdate.update(client, url);
 
