@@ -60,12 +60,14 @@ void OSSM::startHomingTask(void *pvParameters) {
     ESP_LOGD("Homing", "Target position in steps: %d", targetPositionInSteps);
     ossm->stepper->moveTo(targetPositionInSteps, false);
 
-    auto isInCorrectState = [ossm]() {
-        return ossm->isInMode(OSSMMode::HOMING);
+    auto isInCorrectState = [](OSSM *ossm) {
+        // Add any states that you want to support here.
+        return ossm->sm->is("homing"_s) || ossm->sm->is("homing.forward"_s) ||
+               ossm->sm->is("homing.backward"_s);
     };
 
     // run loop for 15second or until loop exits
-    while (isInCorrectState()) {
+    while (isInCorrectState(ossm)) {
         TickType_t xCurrentTickCount = xTaskGetTickCount();
         // Calculate the time in ticks that the task has been running.
         TickType_t xTicksPassed = xCurrentTickCount - xTaskStartTime;

@@ -14,8 +14,9 @@ void OSSM::drawPatternControlsTask(void *pvParameters) {
     OSSM *ossm = (OSSM *)pvParameters;
     SettingPercents savedSettings = OSSM::setting;
 
-    auto isInCorrectState = [ossm]() {
-        return ossm->isInMode(OSSMMode::STROKE_ENGINE);
+    auto isInCorrectState = [](OSSM *ossm) {
+        // Add any states that you want to support here.
+        return ossm->sm->is("strokeEngine.pattern"_s);
     };
 
     int nextPattern = (int)OSSM::setting.pattern;
@@ -29,7 +30,7 @@ void OSSM::drawPatternControlsTask(void *pvParameters) {
     ossm->encoder.setBoundaries(0, numberOfPatterns * 3 - 1, true);
     ossm->encoder.setEncoderValue(nextPattern * 3);
 
-    while (isInCorrectState()) {
+    while (isInCorrectState(ossm)) {
         nextPattern = ossm->encoder.readEncoder() / 3;
         shouldUpdateDisplay =
             shouldUpdateDisplay || (int)OSSM::setting.pattern != nextPattern;

@@ -2,8 +2,6 @@
 #define OSSM_SOFTWARE_OSSM_H
 
 #include <Arduino.h>
-#include <nvs.h>
-#include <nvs_flash.h>
 #include <services/board.h>
 #include <services/communication/queue.h>
 
@@ -20,7 +18,6 @@
 #include "boost/sml.hpp"
 #include "constants/Config.h"
 #include "constants/Menu.h"
-#include "constants/CalibrationMenu.h"
 #include "constants/Pins.h"
 #include "constants/UserConfig.h"
 #include "esp_log.h"
@@ -79,18 +76,6 @@ class OSSM : public OSSMInterface {
             auto startStreaming = [](OSSM &o) { o.startStreaming(); };
             auto drawPatternControls = [](OSSM &o) { o.drawPatternControls(); };
             auto drawPreflight = [](OSSM &o) { o.drawPreflight(); };
-            auto drawCalibrationMenu = [](OSSM &o) { o.drawCalibrationMenu(); };
-            auto startCalibrationHoming = [](OSSM &o) { o.startCalibrationHoming(); };
-            auto setCalibrated = [](OSSM &o) { o.setCalibrated(); };
-
-            // Mode-setting actions for eliminating string parsing duplication
-            auto setMenuMode = [](OSSM &o) { o.setMode(OSSM::OSSMMode::MENU); };
-            auto setPenetrationMode = [](OSSM &o) { o.setMode(OSSM::OSSMMode::SIMPLE_PENETRATION); };
-            auto setEngineMode = [](OSSM &o) { o.setMode(OSSM::OSSMMode::STROKE_ENGINE); };
-            auto setStreamingMode = [](OSSM &o) { o.setMode(OSSM::OSSMMode::STREAMING); };
-            auto setCalibrationMode = [](OSSM &o) { o.setMode(OSSM::OSSMMode::CALIBRATION); };
-            auto setHomingMode = [](OSSM &o) { o.setMode(OSSM::OSSMMode::HOMING); };
-            auto setErrorMode = [](OSSM &o) { o.setMode(OSSM::OSSMMode::ERROR); };
 
             // armpit: Distinct defaults for StrokeEngine and SimplePenetration
             // for more tailored UX
@@ -168,16 +153,8 @@ class OSSM : public OSSMInterface {
 #endif
             };
 
-            auto isCalibrated = [](OSSM &o) {
-                return o.isCalibrated;
-            };
-
             auto isOption = [](Menu option) {
                 return [option](OSSM &o) { return o.menuOption == option; };
-            };
-
-            auto isCalibrationOption = [](CalibrationMenu option) {
-                return [option](OSSM &o) { return o.calibrationMenuOption == option; };
             };
 
             auto isPreflightSafe = [](OSSM &o) {
@@ -201,41 +178,41 @@ class OSSM : public OSSMInterface {
             return make_transition_table(
             // clang-format off
 #ifdef AJ_DEVELOPMENT_HARDWARE
-                *"idle"_s + initDone / setMenuMode = "menu"_s,
+                *"idle"_s + initDone = "menu"_s,
 #else
-                *"idle"_s + initDone[(isCalibrated)] / drawHello = "homing"_s,
-                *"idle"_s + initDone[(!isCalibrated)] / drawHello = "drawHello"_s,
-                "drawHello"_s + drawHelloDone  = "calibration"_s,
+                *"idle"_s + initDone / drawHello = "homing"_s,
 #endif
 
-                "homing"_s / (setHomingMode, startHoming) = "homing.forward"_s,
-                "homing.forward"_s + error  = "error"_s,
+                "homing"_s / startHoming = "homing.forward"_s,
+                "homing.forward"_s + error = "error"_s,
                 "homing.forward"_s + homingDone / startHoming = "homing.backward"_s,
-                "homing.backward"_s + error  = "error"_s,
-                "homing.backward"_s + homingDone[(isStrokeTooShort)]  = "error"_s,
+                "homing.backward"_s + error = "error"_s,
+                "homing.backward"_s + homingDone[(isStrokeTooShort)] = "error"_s,
                 "homing.backward"_s + homingDone[isFirstHomed] / setHomed = "menu"_s,
                 "homing.backward"_s + homingDone[(isOption(Menu::SimplePenetration))] / setHomed = "simplePenetration"_s,
                 "homing.backward"_s + homingDone[(isOption(Menu::StrokeEngine))] / setHomed = "strokeEngine"_s,
                 "homing.backward"_s + homingDone[(isOption(Menu::Streaming))] / setHomed = "streaming"_s,
 
-                "menu"_s / (setMenuMode, drawMenu) = "menu.idle"_s,
-                "menu.idle"_s + buttonPress[(isOption(Menu::SimplePenetration))]  = "simplePenetration"_s,
+                "menu"_s / (drawMenu) = "menu.idle"_s,
+                "menu.idle"_s + buttonPress[(isOption(Menu::SimplePenetration))] = "simplePenetration"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::StrokeEngine))] = "strokeEngine"_s,
-                "menu.idle"_s + buttonPress[(isOption(Menu::Streaming))]  = "streaming"_s,
+                "menu.idle"_s + buttonPress[(isOption(Menu::Streaming))] = "streaming"_s,
+                "menu.idle"_s + buttonPress[(isOption(Menu::UpdateOSSM))] = "update"_s,
+                "menu.idle"_s + buttonPress[(isOption(Menu::WiFiSetup))] = "wifi"_s,
                 "menu.idle"_s + buttonPress[isOption(Menu::Help)] = "help"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::Restart))] = "restart"_s,
 
                 "simplePenetration"_s [isNotHomed] = "homing"_s,
-                "simplePenetration"_s [isPreflightSafe] / (setPenetrationMode, resetSettingsSimplePen, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
+                "simplePenetration"_s [isPreflightSafe] / (resetSettingsSimplePen, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
                 "simplePenetration"_s / drawPreflight = "simplePenetration.preflight"_s,
-                "simplePenetration.preflight"_s + preflightDone = "simplePenetration"_s,
+                "simplePenetration.preflight"_s + preflightDone / (resetSettingsSimplePen, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
                 "simplePenetration.preflight"_s + longPress = "menu"_s,
                 "simplePenetration.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
 
                 "strokeEngine"_s [isNotHomed] = "homing"_s,
-                "strokeEngine"_s [isPreflightSafe] / (setEngineMode, resetSettingsStrokeEngine, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
+                "strokeEngine"_s [isPreflightSafe] / (resetSettingsStrokeEngine, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
                 "strokeEngine"_s / drawPreflight = "strokeEngine.preflight"_s,
-                "strokeEngine.preflight"_s + preflightDone  = "strokeEngine"_s,
+                "strokeEngine.preflight"_s + preflightDone / (resetSettingsStrokeEngine, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
                 "strokeEngine.preflight"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
                 "strokeEngine.idle"_s + buttonPress / incrementControl = "strokeEngine.idle"_s,
                 "strokeEngine.idle"_s + doublePress / drawPatternControls = "strokeEngine.pattern"_s,
@@ -245,9 +222,9 @@ class OSSM : public OSSMInterface {
                 "strokeEngine.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
 
                 "streaming"_s [isNotHomed] = "homing"_s,
-                "streaming"_s [isPreflightSafe] / (setStreamingMode, drawPlayControls, startStreaming) = "streaming.idle"_s,
+                "streaming"_s [isPreflightSafe] / ( drawPlayControls, startStreaming) = "streaming.idle"_s,
                 "streaming"_s / drawPreflight = "streaming.preflight"_s,
-                "streaming.preflight"_s + preflightDone  = "streaming"_s,
+                "streaming.preflight"_s + preflightDone / ( drawPlayControls, startStreaming) = "streaming.idle"_s,
                 "streaming.preflight"_s + longPress = "menu"_s,
                 "streaming.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
 
@@ -265,23 +242,11 @@ class OSSM : public OSSMInterface {
                 "help"_s / drawHelp = "help.idle"_s,
                 "help.idle"_s + buttonPress = "menu"_s,
 
-                "error"_s / (setErrorMode, drawError) = "error.idle"_s,
+                "error"_s / drawError = "error.idle"_s,
                 "error.idle"_s + buttonPress / drawHelp = "error.help"_s,
                 "error.help"_s + buttonPress / restart = X,
 
-                "restart"_s / restart = X,
-
-                // Calibration menu states
-                "calibration"_s / (setCalibrationMode, drawCalibrationMenu) = "calibration.idle"_s,
-                "calibration.idle"_s + buttonPress[(isCalibrationOption(CalibrationMenu::CalibrateLength))] / setCalibrationMode = "calibration.calibrating"_s,
-                "calibration.idle"_s + buttonPress[(isCalibrationOption(CalibrationMenu::SaveCalibration))] / setMenuMode = "menu"_s,
-                "calibration.idle"_s + buttonPress[(isCalibrationOption(CalibrationMenu::UpdateOSSM))] = "update"_s,
-                "calibration.idle"_s + buttonPress[(isCalibrationOption(CalibrationMenu::WiFiSetup))] = "wifi"_s,
-                "calibration.calibrating"_s / (startCalibrationHoming, setCalibrationMode) = "calibration.calibrating.forward"_s,
-                "calibration.calibrating.forward"_s + error / setErrorMode = "error"_s,
-                "calibration.calibrating.forward"_s + calibrationHomingDone / (startCalibrationHoming, setCalibrationMode) = "calibration.calibrating.backward"_s,
-                "calibration.calibrating.backward"_s + error / setErrorMode = "error"_s,
-                "calibration.calibrating.backward"_s + calibrationHomingDone / (setCalibrated, setHomed, setMenuMode) = "calibration.idle"_s);
+                "restart"_s / restart = X);
 
             // clang-format on
         }
@@ -308,53 +273,6 @@ class OSSM : public OSSMInterface {
 
     bool lastSpeedCommandWasFromBLE = false;
     bool hasActiveBLEConnection = false;
-    static bool isCalibrated;
-
-    // Mode tracking for eliminating string parsing duplication
-    enum class OSSMMode {
-        IDLE,
-        MENU,
-        SIMPLE_PENETRATION,
-        STROKE_ENGINE,
-        STREAMING,
-        CALIBRATION,
-        HOMING,
-        ERROR,
-        WIFI
-    };
-
-    OSSMMode currentMode = OSSMMode::IDLE;
-
-    void setMode(OSSMMode newMode) {
-        currentMode = newMode;
-    }
-
-    bool isInMode(OSSMMode mode) const {
-        return currentMode == mode;
-    }
-
-    /**
-     * ///////////////////////////////////////////
-     * ////
-     * ////  NVS (Non-Volatile Storage) Variables and Functions
-     * ////
-     * ///////////////////////////////////////////
-     */
-
-    // Calibration data structure for NVS storage
-    struct CalibrationData {
-        float measuredStrokeSteps;
-        bool isCalibrated;
-    };
-
-    nvs_handle_t nvsHandle = 0;
-    static const char* NVS_NAMESPACE;
-    static const char* NVS_KEY_CALIBRATION_DATA;
-
-    bool initNVS();
-    bool saveCalibrationData();
-    bool loadCalibrationData();
-    void cleanupNVS();
 
     /**
      * ///////////////////////////////////////////
@@ -416,18 +334,7 @@ class OSSM : public OSSMInterface {
 
     static void startStrokeEngineTask(void *pvParameters);
 
-    void drawCalibrationMenu();
-    static void drawCalibrationMenuTask(void *pvParameters);
-    void startCalibrationHoming();
-    static void startCalibrationHomingTask(void *pvParameters);
-    void setCalibrated();
-
     bool isHomed;
-
-    // Destructor to cleanup NVS
-    ~OSSM() {
-        cleanupNVS();
-    }
 
   public:
     explicit OSSM(U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display,
@@ -441,7 +348,6 @@ class OSSM : public OSSMInterface {
 
     static SettingPercents setting;
     Menu menuOption;
-    CalibrationMenu calibrationMenuOption;
 
     /**
      * ///////////////////////////////////////////

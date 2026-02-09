@@ -12,15 +12,17 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
     int fullStrokeCount = 0;
     static int32_t targetPosition = 0;
 
-    auto isInCorrectState = [ossm]() {
-        return ossm->isInMode(OSSMMode::SIMPLE_PENETRATION);
+    auto isInCorrectState = [](OSSM *ossm) {
+        // Add any states that you want to support here.
+        return ossm->sm->is("simplePenetration"_s) ||
+               ossm->sm->is("simplePenetration.idle"_s);
     };
 
     double lastSpeed = 0;
 
     bool stopped = false;
 
-    while (isInCorrectState()) {
+    while (isInCorrectState(ossm)) {
         auto speed = (1_mm) * Config::Driver::maxSpeedMmPerSecond *
                      OSSM::setting.speed / 100.0;
         auto acceleration = (1_mm) * Config::Driver::maxSpeedMmPerSecond *
@@ -109,8 +111,7 @@ void OSSM::startSimplePenetration() {
 void startStreamingTask(void *pvParameters) {
     OSSM *ossm = (OSSM *)pvParameters;
 
-    auto isInCorrectState = [ossm]() {
-        // Check streaming states directly since this is a free function
+    auto isInCorrectState = [](OSSM *ossm) {
         return ossm->sm->is("streaming"_s) ||
                ossm->sm->is("streaming.preflight"_s) ||
                ossm->sm->is("streaming.idle"_s);
@@ -127,7 +128,7 @@ void startStreamingTask(void *pvParameters) {
     ossm->stepper->setSpeedInHz((1_mm) * Config::Driver::maxSpeedMmPerSecond);
     ossm->stepper->setAcceleration((1_mm) * Config::Driver::maxAcceleration);
 
-    while (isInCorrectState()) {
+    while (isInCorrectState(ossm)) {
         // Wait for new command from BLE
         if (!consumeTargetUpdate()) {
             vTaskDelay(1);

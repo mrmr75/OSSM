@@ -58,11 +58,12 @@ void OSSM::drawWiFi() {
         [](void *pvParameters) {
             OSSM *ossm = (OSSM *)pvParameters;
 
-            auto isInCorrectState = [ossm]() {
-                return ossm->isInMode(OSSMMode::WIFI);
+            auto isInCorrectState = [](OSSM *ossm) {
+                // Add any states that you want to support here.
+                return ossm->sm->is("wifi"_s) || ossm->sm->is("wifi.idle"_s);
             };
 
-            while (isInCorrectState()) {
+            while (isInCorrectState(ossm)) {
                 wm.process();
                 vTaskDelay(50);
             }

@@ -23,9 +23,7 @@ struct DoublePress {};
 
 // Distinct Done events for different phases (better type safety)
 struct InitDone {};        // Initial transition from idle
-struct DrawHelloDone {};   // DrawHello task complete
 struct HomingDone {};      // Homing forward/backward complete
-struct CalibrationHomingDone {};  // Calibration homing complete
 struct PreflightDone {};  // Preflight check complete
 struct WifiDone {};       // WiFi portal done
 
@@ -41,9 +39,7 @@ static auto buttonPress = sml::event<ButtonPress>;
 static auto longPress = sml::event<LongPress>;
 static auto doublePress = sml::event<DoublePress>;
 static auto initDone = sml::event<InitDone>;
-static auto drawHelloDone = sml::event<DrawHelloDone>;
 static auto homingDone = sml::event<HomingDone>;
-static auto calibrationHomingDone = sml::event<CalibrationHomingDone>;
 static auto preflightDone = sml::event<PreflightDone>;
 static auto wifiDone = sml::event<WifiDone>;
 static auto error = sml::event<Error>;

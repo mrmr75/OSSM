@@ -63,8 +63,6 @@ static const char enUs_StrokeEngineNames_3[] PROGMEM = "Half'n'Half";
 static const char enUs_StrokeEngineNames_4[] PROGMEM = "Deeper";
 static const char enUs_StrokeEngineNames_5[] PROGMEM = "Stop'n'Go";
 static const char enUs_StrokeEngineNames_6[] PROGMEM = "Insist";
-static const char enUs_CalibrateLength[] PROGMEM = "Calibrate Length";
-static const char enUs_SaveCalibration[] PROGMEM = "Save Calibration";
 
 static const LanguageStruct enUs = {
     .DeepThroatTrainerSync = enUs_DeepThroatTrainerSync,
