@@ -175,7 +175,7 @@ enum Alignment {
 
 namespace drawShape {
     static void scroll(long position) {
-        int topMargin = 10;  // Margin at the top of the screen
+        int topMargin = 16;  // Margin at the top of the screen
 
         int scrollbarHeight = 64 - topMargin;  // Height of the scrollbar
         int scrollbarWidth = 3;                // Width of the scrollbar
@@ -204,7 +204,7 @@ namespace drawShape {
                            int textPadding = 0, float minValue = 0,
                            float maxValue = 100) {
         int w = 10;
-        int h = 50;
+        int h = 48;
         int padding = 4;  // Padding after the bar for text
         int lh1 = 10;     // Line height position for first line of text
         int lh2 = 22;     // Line height position for second line of text
@@ -269,7 +269,7 @@ namespace drawShape {
                                 float minValue = 0, float maxValue = 100) {
         int w = 3;
         int mid = (w - 1) / 2;
-        int h = 50;
+        int h = 48;
 
         // Calculate height of the bar based on the value and potential min/max
         float scaledValue =

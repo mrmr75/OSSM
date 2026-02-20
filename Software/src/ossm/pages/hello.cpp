@@ -18,7 +18,7 @@ static void drawHelloTask(void *pvParameters) {
     int offsetY = 12;
 
     // Bounce the Y position from 0 to 32, up to 24 and down to 32
-    std::array<int, 8> framesY = {6, 12, 24, 48, 44, 42, 44, 48};
+    std::array<int, 8> framesY = {6, 12, 24, 48, 44, 42, 44, 52};
     std::array<int, 4> heights = {0, 0, 0, 0};
     int letterSpacing = 20;
 
@@ -59,7 +59,7 @@ static void drawHelloTask(void *pvParameters) {
         clearPage(true, true);
         drawStr::title(
             "Research & Desire         ");  // Padding to offset from BLE icons
-        display.drawXBMP(35, 14, 57, 50, Images::RDLogo);
+        display.drawXBMP(35, 16, 57, 50, Images::RDLogo);
         refreshPage(true, true);
         xSemaphoreGive(displayMutex);
     }
@@ -70,7 +70,7 @@ static void drawHelloTask(void *pvParameters) {
         clearPage(true, true);
         drawStr::title(
             "Kinky Makers       ");  // Padding to offset from BLE icons
-        display.drawXBMP(40, 14, 50, 50, Images::KMLogo);
+        display.drawXBMP(40, 16, 50, 50, Images::KMLogo);
         refreshPage(true, true);
         xSemaphoreGive(displayMutex);
     }
@@ -83,7 +83,7 @@ static void drawHelloTask(void *pvParameters) {
             std::string(UserConfig::language.MeasuringStroke) +
             "         ";  // Padding to offset from BLE icons
         drawStr::title(measuringStrokeTitle.c_str());
-        display.drawXBMP(40, 14, 50, 50, Images::KMLogo);
+        display.drawXBMP(40, 16, 50, 50, Images::KMLogo);
         refreshPage(true, true);
         xSemaphoreGive(displayMutex);
     }

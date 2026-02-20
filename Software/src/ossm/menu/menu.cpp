@@ -65,8 +65,9 @@ static void drawMenuTask(void *pvParameters) {
             // Drawing Variables.
             int leftPadding = 6;  // Padding on the left side of the screen
             int fontSize = 8;
-            int itemHeight = 20;   // Height of each item
+            int itemHeight = 18;   // Height of each item
             int visibleItems = 3;  // Number of items visible on the screen
+            int yOffset = 8;      // Y offset to start drawing menu items (below header)
 
             auto currentOption = menuState.currentOption;
             if (abs(currentEncoderValue % maxClicks -
@@ -97,31 +98,31 @@ static void drawMenuTask(void *pvParameters) {
 
             // Draw the previous item
             if (lastIdx >= 0) {
-                display.drawUTF8(leftPadding, itemHeight * (1),
+                display.drawUTF8(leftPadding, yOffset + itemHeight * (1),
                                  menuStrings[lastIdx]);
             }
 
             // Draw the next item
             if (nextIdx < Menu::NUM_OPTIONS) {
-                display.drawUTF8(leftPadding, itemHeight * (3),
+                display.drawUTF8(leftPadding, yOffset + itemHeight * (3),
                                  menuStrings[nextIdx]);
             }
 
             // Draw the current item
             display.setFont(Config::Font::bold);
-            display.drawUTF8(leftPadding, itemHeight * (2), menuName);
+            display.drawUTF8(leftPadding, yOffset +itemHeight * (2), menuName);
 
             // Draw a rounded rectangle around the center item
             display.drawRFrame(
                 0,
-                itemHeight * (visibleItems / 2) - (fontSize - itemHeight) / 2,
+                yOffset + itemHeight * (visibleItems / 2) - (fontSize - itemHeight) / 2,
                 120, itemHeight, 2);
 
             // Draw Shadow.
-            display.drawLine(2, 2 + fontSize / 2 + 2 * itemHeight, 119,
-                             2 + fontSize / 2 + 2 * itemHeight);
-            display.drawLine(120, 4 + fontSize / 2 + itemHeight, 120,
-                             1 + fontSize / 2 + 2 * itemHeight);
+            display.drawLine(2, yOffset + 2 + fontSize / 2 + 2 * itemHeight, 119,
+                             yOffset + 2 + fontSize / 2 + 2 * itemHeight);
+            display.drawLine(120, yOffset + 4 + fontSize / 2 + itemHeight, 120,
+                             yOffset + 1 + fontSize / 2 + 2 * itemHeight);
 
             refreshPage(true,
                         true);  // Include both footer and header in refresh
