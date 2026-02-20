@@ -14,6 +14,6 @@ void initStateMachine() {
                                    sml::thread_safe<ESP32RecursiveMutex>,
                                    sml::logger<StateLogger>>(stateLogger);
 
-        stateMachine->process_event(Done{});
+        stateMachine->process_event(InitDone{});
     }
 }

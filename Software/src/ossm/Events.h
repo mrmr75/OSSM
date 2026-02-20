@@ -21,7 +21,12 @@ struct LongPress {};
 
 struct DoublePress {};
 
-struct Done {};
+// Distinct Done events for different phases (better type safety)
+struct InitDone {};        // Initial transition from idle
+struct HomingDone {};      // Homing forward/backward complete
+struct PreflightDone {};  // Preflight check complete
+struct WifiDone {};       // WiFi portal done
+struct PairingDone {};       // BLE pairing done
 
 struct Error {};
 struct EmergencyStop {};
@@ -34,7 +39,11 @@ static auto bleClick = sml::event<BleClick>;
 static auto buttonPress = sml::event<ButtonPress>;
 static auto longPress = sml::event<LongPress>;
 static auto doublePress = sml::event<DoublePress>;
-static auto done = sml::event<Done>;
+static auto initDone = sml::event<InitDone>;
+static auto homingDone = sml::event<HomingDone>;
+static auto preflightDone = sml::event<PreflightDone>;
+static auto pairingDone = sml::event<PairingDone>;
+static auto wifiDone = sml::event<WifiDone>;
 static auto error = sml::event<Error>;
 static auto home = sml::event<Home>;
 #endif  // OSSM_SOFTWARE_EVENTS_H

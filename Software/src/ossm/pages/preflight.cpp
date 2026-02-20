@@ -52,7 +52,7 @@ static void drawPreflightTask(void *pvParameters) {
             getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
 #endif
         if (speedPercentage < Config::Advanced::commandDeadZonePercentage) {
-            stateMachine->process_event(Done{});
+            stateMachine->process_event(PreflightDone{});
             break;
         };
 
