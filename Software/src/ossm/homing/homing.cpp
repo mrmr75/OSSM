@@ -124,7 +124,7 @@ static void startHomingTask(void *pvParameters) {
         // Clear homing active flag for LED indication
         setHomingActive(false);
 
-        stateMachine->process_event(Done{});
+        stateMachine->process_event(HomingDone{});
         break;
     };
     Tasks::activeBackgroundTaskH = nullptr;

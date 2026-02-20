@@ -54,7 +54,7 @@ void drawWiFi() {
                     wm.process();
 
                     if (WiFiClass::status() == WL_CONNECTED) {
-                        stateMachine->process_event(Done{});
+                        stateMachine->process_event(WifiDone{});
                         break;
                     }
 

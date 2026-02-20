@@ -84,7 +84,7 @@ static void pairingTask(void *pvParameters) {
     ESP_LOGI("PAIRING", "Auth response: code=%s isPaired=%d", pairingCode.c_str(), isPaired);
 
     if (isPaired) {
-        stateMachine->process_event(Done{});
+        stateMachine->process_event(PairingDone{});
         vTaskDelete(nullptr);
         return;
     }

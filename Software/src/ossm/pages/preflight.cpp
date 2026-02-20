@@ -36,7 +36,7 @@ static void drawPreflightTask(void *pvParameters) {
 #endif
         if (speedPercentage < Config::Advanced::commandDeadZonePercentage) {
             Tasks::activeUiTaskH = NULL;
-            stateMachine->process_event(Done{});
+            stateMachine->process_event(PreflightDone{});
             vTaskDelete(nullptr);
             return;
         };
