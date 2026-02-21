@@ -17,9 +17,16 @@ namespace Tasks {
     extern TaskHandle_t runSimplePenetrationTaskH;
     extern TaskHandle_t runStrokeEngineTaskH;
 
+    extern volatile TaskHandle_t activeUiTaskH;
+    extern volatile TaskHandle_t activeBackgroundTaskH;
+
+
     // Constants can stay in the header
     constexpr int stepperCore = 1;
     constexpr int operationTaskCore = 0;
+
+    void startUiTask(TaskFunction_t uiWorkerTask, const char* taskName, void* params);
+    void startBackgroundTask(TaskFunction_t uiWorkerTask, const char* taskName, void* params);
 }
 
 #endif  // OSSM_SOFTWARE_TASKS_H
