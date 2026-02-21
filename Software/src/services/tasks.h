@@ -6,20 +6,36 @@
 
 namespace Tasks {
     // Declare variables as extern
-    extern TaskHandle_t drawHelloTaskH;
-    extern TaskHandle_t drawMenuTaskH;
-    extern TaskHandle_t drawPlayControlsTaskH;
-    extern TaskHandle_t drawPatternControlsTaskH;
-    extern TaskHandle_t wmTaskH;
-    extern TaskHandle_t drawPreflightTaskH;
+    // extern TaskHandle_t drawHelloTaskH;
+    // extern TaskHandle_t drawMenuTaskH;
+    // extern TaskHandle_t drawPlayControlsTaskH;
+    // extern TaskHandle_t drawPatternControlsTaskH;
+    // extern TaskHandle_t wmTaskH;
+    // extern TaskHandle_t drawPreflightTaskH;
 
-    extern TaskHandle_t runHomingTaskH;
-    extern TaskHandle_t runSimplePenetrationTaskH;
-    extern TaskHandle_t runStrokeEngineTaskH;
+    // extern TaskHandle_t runHomingTaskH;
+    // extern TaskHandle_t runSimplePenetrationTaskH;
+    // extern TaskHandle_t runStrokeEngineTaskH;
+
+    extern volatile TaskHandle_t activeUiTaskH;
+    extern volatile TaskHandle_t activeStreamingTaskH;
+    extern volatile TaskHandle_t activeBackgroundTaskH;
+    extern volatile TaskHandle_t activePublishTaskH;
+
 
     // Constants can stay in the header
     constexpr int stepperCore = 1;
     constexpr int operationTaskCore = 0;
+
+    void startUiTask(TaskFunction_t uiWorkerTask, const char* taskName, void* params);
+    void startBackgroundTask(TaskFunction_t uiWorkerTask, const char* taskName, void* params);
+    void startStreamingTask(TaskFunction_t uiWorkerTask, const char* taskName, void* params);
+    void startPublishingTask(TaskFunction_t uiWorkerTask, const char* taskName, void* params);
+
+    void cancelActiveUiTask();
+    void cancelActiveBackgroundTask();
+    void cancelActiveStreamingTask();
+    void cancelActivePublishingTask();
 }
 
 #endif  // OSSM_SOFTWARE_TASKS_H

@@ -36,14 +36,7 @@ static void startStrokeEngineTask(void *pvParameters) {
     Stroker.setDepth(0.01f * settings.depth * abs(measuredStrokeMm), true);
     Stroker.setStroke(0.01f * settings.stroke * abs(measuredStrokeMm), true);
 
-    auto isInCorrectState = []() {
-        // Add any states that you want to support here.
-        return stateMachine->is("strokeEngine"_s) ||
-               stateMachine->is("strokeEngine.idle"_s) ||
-               stateMachine->is("strokeEngine.pattern"_s);
-    };
-
-    while (isInCorrectState()) {
+    while (ulTaskNotifyTake(pdTRUE, 0) == 0) {
         if (isChangeSignificant(lastSetting.speed, settings.speed) ||
             wasLastSpeedCommandFromBLE()) {
             // Speed is float, so give a little wiggle room here to assume 0
@@ -124,23 +117,18 @@ static void startStrokeEngineTask(void *pvParameters) {
     }
 
     Stroker.stopMotion();
-
+    Tasks::activeBackgroundTaskH = nullptr;
     vTaskDelete(nullptr);
 }
 
 static void publishStateTask(void *pvParameters) {
-    auto isInCorrectState = []() {
-        return stateMachine->is("strokeEngine"_s) ||
-               stateMachine->is("strokeEngine.idle"_s) ||
-               stateMachine->is("strokeEngine.pattern"_s);
-    };
 
     const TickType_t publishInterval = pdMS_TO_TICKS(
         (int)(1000.0f / UserConfig::mqttPublishFrequencyHz));
 
     TickType_t lastWakeTime = xTaskGetTickCount();
 
-    while (isInCorrectState()) {
+    while (ulTaskNotifyTake(pdTRUE, 0) == 0) {
         if (!mqttConnected) {
             vTaskDelay(pdMS_TO_TICKS(1000));
             lastWakeTime = xTaskGetTickCount();
@@ -169,15 +157,8 @@ static void publishStateTask(void *pvParameters) {
 void startStrokeEngine() {
     int stackSize = 12 * configMINIMAL_STACK_SIZE;
 
-    xTaskCreatePinnedToCore(startStrokeEngineTask, "startStrokeEngineTask",
-                            stackSize, nullptr, configMAX_PRIORITIES - 1,
-                            &Tasks::runStrokeEngineTaskH,
-                            Tasks::operationTaskCore);
-
-    xTaskCreatePinnedToCore(publishStateTask, "publishStateTask",
-                            5 * configMINIMAL_STACK_SIZE, nullptr,
-                            tskIDLE_PRIORITY + 1, nullptr,
-                            Tasks::operationTaskCore);
+    Tasks::startBackgroundTask(startStrokeEngineTask, "startStrokeEngineTask", nullptr);
+    Tasks::startPublishingTask(publishStateTask, "publishStateTask", nullptr);
 }
 
 }  // namespace stroke_engine

@@ -20,17 +20,11 @@ static void startSimplePenetrationTask(void *pvParameters) {
     int fullStrokeCount = 0;
     static int32_t targetPosition = 0;
 
-    auto isInCorrectState = []() {
-        // Add any states that you want to support here.
-        return stateMachine->is("simplePenetration"_s) ||
-               stateMachine->is("simplePenetration.idle"_s);
-    };
-
     double lastSpeed = 0;
 
     bool stopped = false;
 
-    while (isInCorrectState()) {
+    while (ulTaskNotifyTake(pdTRUE, 0) == 0) {
         auto speed = simple_pen_logic::calculateSpeed(
             settings.speed, Config::Driver::maxSpeedMmPerSecond, (1_mm));
         auto acceleration = simple_pen_logic::calculateAcceleration(
@@ -101,18 +95,15 @@ static void startSimplePenetrationTask(void *pvParameters) {
 
         vTaskDelay(1);
     }
-
+    Tasks::activeBackgroundTaskH = nullptr;
     vTaskDelete(nullptr);
 }
 
 void startSimplePenetration() {
     int stackSize = 10 * configMINIMAL_STACK_SIZE;
 
-    xTaskCreatePinnedToCore(startSimplePenetrationTask,
-                            "startSimplePenetrationTask", stackSize, nullptr,
-                            configMAX_PRIORITIES - 1,
-                            &Tasks::runSimplePenetrationTaskH,
-                            Tasks::operationTaskCore);
+    Tasks::startBackgroundTask(startSimplePenetrationTask,
+                            "startSimplePenetrationTask", nullptr);
 }
 
 }  // namespace simple_penetration

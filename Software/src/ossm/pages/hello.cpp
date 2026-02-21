@@ -58,13 +58,13 @@ static void drawHelloTask(void *pvParameters) {
         xSemaphoreGive(displayMutex);
     }
 
+    // delete the task
+    Tasks::activeUiTaskH = NULL;
     vTaskDelete(nullptr);
 }
 
 void drawHello() {
-    int stackSize = 3 * configMINIMAL_STACK_SIZE;
-    xTaskCreate(drawHelloTask, "drawHello", stackSize, nullptr, 1,
-                &Tasks::drawHelloTaskH);
+    Tasks::startUiTask(drawHelloTask, "drawHello", nullptr);
 }
 
 }  // namespace pages

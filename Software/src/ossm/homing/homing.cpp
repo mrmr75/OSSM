@@ -62,15 +62,8 @@ static void startHomingTask(void *pvParameters) {
     ESP_LOGD("Homing", "Target position in steps: %d", targetPositionInSteps);
     stepper->moveTo(targetPositionInSteps, false);
 
-    auto isInCorrectState = []() {
-        // Add any states that you want to support here.
-        return stateMachine->is("homing"_s) ||
-               stateMachine->is("homing.forward"_s) ||
-               stateMachine->is("homing.backward"_s);
-    };
-
     // run loop for 15second or until loop exits
-    while (isInCorrectState()) {
+    while (ulTaskNotifyTake(pdTRUE, 0) == 0) {
         TickType_t xCurrentTickCount = xTaskGetTickCount();
         // Calculate the time in ticks that the task has been running.
         TickType_t xTicksPassed = xCurrentTickCount - xTaskStartTime;
@@ -134,15 +127,12 @@ static void startHomingTask(void *pvParameters) {
         stateMachine->process_event(Done{});
         break;
     };
-
+    Tasks::activeBackgroundTaskH = nullptr;
     vTaskDelete(nullptr);
 }
 
 void startHoming() {
-    int stackSize = 10 * configMINIMAL_STACK_SIZE;
-    xTaskCreatePinnedToCore(startHomingTask, "startHomingTask", stackSize,
-                            nullptr, configMAX_PRIORITIES - 1,
-                            &Tasks::runHomingTaskH, Tasks::operationTaskCore);
+    Tasks::startBackgroundTask(startHomingTask, "startHomingTask", nullptr);
 }
 
 bool isStrokeTooShort() {

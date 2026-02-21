@@ -55,14 +55,15 @@ static void drawPlayControlsTask(void *pvParameters) {
     SettingPercents next = {0, 0, 0, 0, 0};
     unsigned long displayLastUpdated = 0;
 
-    auto isInCorrectState = []() {
-        return stateMachine->is("simplePenetration"_s) ||
-               stateMachine->is("simplePenetration.idle"_s) ||
-               stateMachine->is("strokeEngine"_s) ||
-               stateMachine->is("strokeEngine.idle"_s) ||
-               stateMachine->is("streaming"_s) ||
-               stateMachine->is("streaming.idle"_s);
-    };
+    /**
+     * /////////////////////////////////////////////
+     * /////////// Play Controls Display ///////////
+     * /////////////////////////////////////////////
+     *
+     * This is a safety feature to prevent the user from accidentally beginning
+     * a session at max speed. After the user decreases the speed to 0.5% or
+     * less, the state machine will be allowed to continue.
+     */
 
     static float encoderValue = 0;
 
@@ -77,7 +78,8 @@ static void drawPlayControlsTask(void *pvParameters) {
     showHeaderIcons = true;
     vTaskDelay(100);
 
-    while (isInCorrectState()) {
+    while (ulTaskNotifyTake(pdTRUE, 0) == 0) {
+        // Always assume the display should not update.
         shouldUpdateDisplay = false;
 
 #ifdef AJ_DEVELOPMENT_HARDWARE
@@ -192,14 +194,12 @@ static void drawPlayControlsTask(void *pvParameters) {
 
         vTaskDelay(200);
     }
-
+    Tasks::activeUiTaskH = NULL;
     vTaskDelete(nullptr);
 };
 
 void drawPlayControls() {
-    int stackSize = 3 * configMINIMAL_STACK_SIZE;
-    xTaskCreate(drawPlayControlsTask, "drawPlayControlsTask", stackSize,
-                nullptr, 1, &Tasks::drawPlayControlsTaskH);
-}
+    Tasks::startUiTask(drawPlayControlsTask, "drawPlayControlsTask", nullptr);
+};
 
 }  // namespace play_controls

@@ -20,6 +20,7 @@
 #include "services/communication/mqtt.h"
 #include "services/encoder.h"
 #include "services/stepper.h"
+#include "services/tasks.h"
 #include "services/wm.h"
 #include "utils/random.h"
 
@@ -152,6 +153,8 @@ void ossmStartStrokeEngine() {
 void ossmEmergencyStop() {
     stepper->forceStop();
     stepper->disableOutputs();
+    Tasks::cancelActiveBackgroundTask();
+    Tasks::cancelActiveUiTask();
 }
 
 void ossmDrawHelp() {

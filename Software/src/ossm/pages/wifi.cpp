@@ -9,6 +9,7 @@
 #include "services/display.h"
 #include "services/wm.h"
 #include "ui.h"
+#include "services/tasks.h"
 
 namespace sml = boost::sml;
 using namespace sml;
@@ -16,6 +17,7 @@ using namespace sml;
 namespace pages {
 
 void drawWiFi() {
+    Tasks::cancelActiveUiTask();
     if (xSemaphoreTake(displayMutex, 200) == pdTRUE) {
         bool isConnected = WiFiClass::status() == WL_CONNECTED;
 

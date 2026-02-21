@@ -24,11 +24,6 @@ static void drawPreflightTask(void *pvParameters) {
     auto menuString = menuStrings[menuState.currentOption];
     float speedPercentage;
 
-    auto isInPreflight = []() {
-        return stateMachine->is("simplePenetration.preflight"_s) ||
-               stateMachine->is("streaming.preflight"_s) ||
-               stateMachine->is("strokeEngine.preflight"_s);
-    };
 
     showHeaderIcons = true;
 
@@ -40,8 +35,10 @@ static void drawPreflightTask(void *pvParameters) {
             getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
 #endif
         if (speedPercentage < Config::Advanced::commandDeadZonePercentage) {
+            Tasks::activeUiTaskH = NULL;
             stateMachine->process_event(Done{});
-            break;
+            vTaskDelete(nullptr);
+            return;
         };
 
         if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
@@ -54,15 +51,13 @@ static void drawPreflightTask(void *pvParameters) {
         }
 
         vTaskDelay(100);
-    } while (isInPreflight());
-
+    } while (ulTaskNotifyTake(pdTRUE, 0) == 0);
+    Tasks::activeUiTaskH = NULL;
     vTaskDelete(nullptr);
 };
 
 void drawPreflight() {
-    int stackSize = 3 * configMINIMAL_STACK_SIZE;
-    xTaskCreate(drawPreflightTask, "drawPreflightTask", stackSize, nullptr, 1,
-                &Tasks::drawPreflightTaskH);
+    Tasks::startUiTask(drawPreflightTask, "drawPreflightTask", nullptr);
 }
 
 }  // namespace pages

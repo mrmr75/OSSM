@@ -27,10 +27,6 @@ static size_t numberOfPatterns = 7;
 static void drawPatternControlsTask(void *pvParameters) {
     SettingPercents savedSettings = settings;
 
-    auto isInCorrectState = []() {
-        return stateMachine->is("strokeEngine.pattern"_s);
-    };
-
     int nextPattern = (int)settings.pattern;
     bool shouldUpdateDisplay = true;
     const char *patternName = "nextPattern";
@@ -43,7 +39,9 @@ static void drawPatternControlsTask(void *pvParameters) {
 
     showHeaderIcons = true;
 
-    while (isInCorrectState()) {
+    showHeaderIcons = true;
+
+    while (ulTaskNotifyTake(pdTRUE, 0) == 0) {
         float speed;
         float speedKnob =
             getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
@@ -92,14 +90,12 @@ static void drawPatternControlsTask(void *pvParameters) {
 
         vTaskDelay(200);
     }
-
+    Tasks::activeUiTaskH = NULL;
     vTaskDelete(nullptr);
 };
 
 void drawPatternControls() {
-    int stackSize = 3 * configMINIMAL_STACK_SIZE;
-    xTaskCreate(drawPatternControlsTask, "drawPatternControlsTask", stackSize,
-                nullptr, 1, &Tasks::drawPatternControlsTaskH);
-}
+    Tasks::startUiTask(drawPatternControlsTask, "drawPatternControlsTask", nullptr);
+};
 
 }  // namespace pattern_controls

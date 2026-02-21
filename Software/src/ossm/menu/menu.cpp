@@ -17,30 +17,27 @@ using namespace sml;
 
 namespace menu {
 
-static void drawMenuTask(void *pvParameters) {
+template<typename MenuEnum, size_t N>
+void drawMenuImpl(const char* headerText,
+                        const char* const (&menuStrings)[N],
+                        MenuEnum& currentOption) {
     bool isFirstDraw = true;
+
+    int clicksPerRow = 3;
+    const int maxClicks = clicksPerRow * N;
+    // Last Wifi State
+    wl_status_t wifiState = WL_IDLE_STATUS;
+
+    encoder.setBoundaries(0, maxClicks - 1, true);
+    encoder.setEncoderValue((int)currentOption * clicksPerRow);
+    encoder.setAcceleration(0);
 
     int lastEncoderValue = encoder.readEncoder();
     int currentEncoderValue;
-    int clicksPerRow = 3;
-    const int maxClicks = clicksPerRow * (Menu::NUM_OPTIONS)-1;
-    wl_status_t wifiState = WL_IDLE_STATUS;
-
-    encoder.setBoundaries(0, maxClicks, true);
-    encoder.setAcceleration(0);
-
-    menuState.currentOption =
-        (Menu)floor(encoder.readEncoder() / clicksPerRow);
-
-    encoder.setAcceleration(0);
 
     showHeaderIcons = true;
 
-    auto isInCorrectState = []() {
-        return stateMachine->is("menu"_s) || stateMachine->is("menu.idle"_s);
-    };
-
-    while (isInCorrectState()) {
+    while (ulTaskNotifyTake(pdTRUE, 0) == 0) {
         wl_status_t newWifiState = WiFiClass::status();
 
         bool shouldRedraw = isFirstDraw || encoder.encoderChanged() ||
@@ -56,12 +53,12 @@ static void drawMenuTask(void *pvParameters) {
         currentEncoderValue = encoder.readEncoder();
 
         if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-            auto currentOption = menuState.currentOption;
+
+
             if (abs(currentEncoderValue % maxClicks -
                     lastEncoderValue % maxClicks) >= clicksPerRow) {
                 lastEncoderValue = currentEncoderValue % maxClicks;
-                currentOption = (Menu)floor(lastEncoderValue / clicksPerRow);
-                menuState.currentOption = currentOption;
+                currentOption = (MenuEnum)floor(lastEncoderValue / clicksPerRow);
             }
 
             ESP_LOGD("Menu",
@@ -70,10 +67,10 @@ static void drawMenuTask(void *pvParameters) {
                      currentEncoderValue, lastEncoderValue, currentOption);
 
             ui::MenuData data{};
-            data.headerText = "";
+            data.headerText = headerText;
             data.items = menuStrings;
-            data.numItems = Menu::NUM_OPTIONS;
-            data.selectedIndex = currentOption;
+            data.numItems = N;
+            data.selectedIndex = (int)currentOption;
 
             ui::drawMenu(display.getU8g2(), data);
             refreshPage(true, true);
@@ -82,14 +79,20 @@ static void drawMenuTask(void *pvParameters) {
 
         vTaskDelay(1);
     };
-
+    Tasks::activeUiTaskH = NULL;
     vTaskDelete(nullptr);
 }
 
-void drawMenu() {
-    int stackSize = 5 * configMINIMAL_STACK_SIZE;
-    xTaskCreate(drawMenuTask, "drawMenuTask", stackSize, nullptr, 1,
-                &Tasks::drawMenuTaskH);
+static void drawMenuTask(void *pvParameters) {
+     drawMenuImpl("Main Menu", menuStrings, menuState.currentOption);
 }
+
+void drawMenu() {
+    Tasks::startUiTask(drawMenuTask, "drawMenuTask", nullptr);
+}
+
+template void drawMenuImpl<Menu, 8u>(const char* headerText,
+                                     const char* const (&menuStrings)[8u],
+                                     Menu& currentOption);
 
 }  // namespace menu
