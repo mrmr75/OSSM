@@ -13,6 +13,7 @@ extern StateLogger stateLogger;
 extern sml::sm<OSSMStateMachine, sml::thread_safe<ESP32RecursiveMutex>,
                sml::logger<StateLogger>> *stateMachine;
 
+extern volatile bool clickEventsEnabled;
 // Initialize the state machine
 void initStateMachine();
 

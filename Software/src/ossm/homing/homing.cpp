@@ -48,7 +48,7 @@ static void startHomingTask(void *pvParameters) {
     vTaskDelete(nullptr);
     return;
 #endif
-
+    clickEventsEnabled = false;
     // Stroke Engine and Simple Penetration treat this differently.
     stepper->enableOutputs();
     stepper->setDirectionPin(Pins::Driver::motorDirectionPin, false);
@@ -83,7 +83,7 @@ static void startHomingTask(void *pvParameters) {
 
             // Clear homing active flag for LED indication
             setHomingActive(false);
-
+            clickEventsEnabled = true;
             stateMachine->process_event(Error{});
             break;
         }
@@ -97,13 +97,18 @@ static void startHomingTask(void *pvParameters) {
         bool isCurrentOverLimit =
             current > Config::Driver::sensorlessCurrentLimit;
 
-        if (!isCurrentOverLimit) {
+        if (!isCurrentOverLimit  && !guards::isButtonPressed()) {
             vTaskDelay(10);  // Increased from 1ms to 10ms to reduce CPU load
             continue;
         }
 
         ESP_LOGD("Homing", "Current over limit: %f", current);
         stepper->stopMove();
+
+        // Wait for button release before proceeding
+        while (guards::isButtonPressed()) {
+            vTaskDelay(100); // Check every 100ms
+        }
 
         // step away from the hard stop, with your hands in the air!
         int32_t currentPosition = stepper->getCurrentPosition();
@@ -120,7 +125,7 @@ static void startHomingTask(void *pvParameters) {
 
         // Clear homing active flag for LED indication
         setHomingActive(false);
-
+        clickEventsEnabled = true;
         stateMachine->process_event(HomingDone{});
         break;
     };

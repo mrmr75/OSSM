@@ -62,9 +62,9 @@ void setup() {
     updateLEDForMachineStatus();  // Set initial LED state
 
     // // link functions to be called on events.
-    button.attachClick([]() { stateMachine->process_event(ButtonPress{}); });
-    button.attachDoubleClick([]() { stateMachine->process_event(DoublePress{}); });
-    button.attachLongPressStart([]() { stateMachine->process_event(LongPress{}); });
+    button.attachClick([]() { if (clickEventsEnabled) { stateMachine->process_event(ButtonPress{}); }});
+    button.attachDoubleClick([]() { if (clickEventsEnabled) { stateMachine->process_event(DoublePress{}); }});
+    button.attachLongPressStart([]() { if (clickEventsEnabled) { stateMachine->process_event(LongPress{}); }});
 
     xTaskCreatePinnedToCore(
         [](void *pvParameters) {

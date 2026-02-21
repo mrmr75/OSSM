@@ -4,6 +4,7 @@
 #include <WiFi.h>
 
 #include "../../constants/Menu.h"
+#include "../../constants/Pins.h"
 
 // Forward declarations for guard implementations (defined in guards.cpp)
 bool ossmIsStrokeTooShort();
@@ -52,6 +53,9 @@ namespace guards {
     // Guard for checking if online
     constexpr auto isOnline = []() { return WiFiClass::status() == WL_CONNECTED; };
 
+    inline bool isButtonPressed() {
+        return digitalRead(Pins::Remote::encoderSwitch) == HIGH;
+    }
 }  // namespace guards
 
 #endif  // OSSM_STATE_GUARDS_H
