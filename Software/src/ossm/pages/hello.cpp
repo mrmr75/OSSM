@@ -30,7 +30,7 @@ static void drawHelloTask(void *pvParameters) {
 
     if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
         ui::LogoData rdLogo{ui::strings::researchAndDesire,
-                            ui::logos::RDLogo, 57, 50, 35, 14, VERSION};
+                            ui::logos::RDLogo, 57, 50, 35, 16, VERSION};
         ui::drawLogo(display.getU8g2(), rdLogo);
         refreshPage(true, true);
         xSemaphoreGive(displayMutex);
@@ -40,7 +40,7 @@ static void drawHelloTask(void *pvParameters) {
 
     if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
         ui::LogoData kmLogo{ui::strings::kinkyMakers, ui::logos::KMLogo,
-                            50, 50, 40, 14, VERSION};
+                            50, 50, 40, 16, VERSION};
         ui::drawLogo(display.getU8g2(), kmLogo);
         refreshPage(true, true);
         xSemaphoreGive(displayMutex);
@@ -52,7 +52,7 @@ static void drawHelloTask(void *pvParameters) {
         std::string measuringTitle =
             std::string(ui::strings::measuringStroke) + "         ";
         ui::LogoData measuring{measuringTitle.c_str(), ui::logos::KMLogo,
-                               50, 50, 40, 14, VERSION};
+                               50, 50, 40, 16, VERSION};
         ui::drawLogo(display.getU8g2(), measuring);
         refreshPage(true, true);
         xSemaphoreGive(displayMutex);

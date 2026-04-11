@@ -20,6 +20,7 @@ constexpr int ICON_AREA_X = SCREEN_WIDTH - 8 * ICON_TILES;
 
 namespace Font {
 static const uint8_t* bold = u8g2_font_helvB08_tf;
+static const uint8_t* pageTitle = u8g2_font_helvB10_tf;
 static const uint8_t* base = u8g2_font_helvR08_tf;
 static const uint8_t* small = u8g2_font_6x10_tf;
 static const uint8_t* header = u8g2_font_spleen5x8_mu;

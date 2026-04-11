@@ -28,6 +28,7 @@ struct PlayControlsData {
 };
 
 struct MenuData {
+    const char* headerText = nullptr;
     const char* const* items;
     int numItems;
     int selectedIndex;

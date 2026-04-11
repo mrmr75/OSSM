@@ -102,10 +102,9 @@ static void title(u8g2_t* u8g2, const char* str) {
 
 namespace drawShape {
 
-static void scroll(u8g2_t* u8g2, long position) {
+static void scroll(u8g2_t* u8g2, long position, int topMargin = 16) {
     if (position < 0) position = 0;
     if (position > 100) position = 100;
-    int topMargin = 10;
     int scrollbarHeight = 64 - topMargin;
     int scrollbarWidth = 3;
     int scrollbarX = 125;
@@ -123,7 +122,7 @@ static void settingBar(u8g2_t* u8g2, const char* name, float value, int x = 0,
                         int textPadding = 0, float minValue = 0,
                         float maxValue = 100) {
     int w = 10;
-    int h = 50;
+    int h = 48;
     int padding = 4;
     int lh1 = 10;
 
@@ -166,7 +165,7 @@ static void settingBarSmall(u8g2_t* u8g2, float value, int x = 0, int y = 0,
                              float minValue = 0, float maxValue = 100) {
     int w = 3;
     int mid = (w - 1) / 2;
-    int h = 50;
+    int h = 48;
 
     auto clamp = [](float v, float lo, float hi) {
         return v < lo ? lo : (v > hi ? hi : v);

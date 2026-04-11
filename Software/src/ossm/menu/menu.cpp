@@ -70,6 +70,7 @@ static void drawMenuTask(void *pvParameters) {
                      currentEncoderValue, lastEncoderValue, currentOption);
 
             ui::MenuData data{};
+            data.headerText = "";
             data.items = menuStrings;
             data.numItems = Menu::NUM_OPTIONS;
             data.selectedIndex = currentOption;

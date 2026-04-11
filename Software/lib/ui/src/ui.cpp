@@ -148,13 +148,13 @@ namespace ui {
         int y = 0;
 
         if (page.title) {
-            u8g2_SetFont(u8g2, Font::bold);
+            u8g2_SetFont(u8g2, Font::pageTitle);
             int ascent = u8g2_GetAscent(u8g2);
             u8g2_DrawUTF8(u8g2, 0, y + ascent, page.title);
             y += ascent + 2;
             int separatorW = qrPixelWidth > 0 ? textW : 80;
             u8g2_DrawHLine(u8g2, 0, y, separatorW);
-            y += 2;
+            y = 16;
         }
 
         if (page.subtitle) {
@@ -357,15 +357,23 @@ namespace ui {
         clearPage(u8g2, true, false);
         u8g2_SetMaxClipWindow(u8g2);
 
+        if (data.headerText) {
+            u8g2_SetFont(u8g2, Font::bold);
+            int ascent = u8g2_GetAscent(u8g2);
+            u8g2_DrawUTF8(u8g2, 0, ascent, data.headerText);
+            u8g2_DrawHLine(u8g2, 0, ascent + 2, 80);
+        }
+
         if (data.numItems <= 0 || !data.items) return;
 
         int leftPadding = 6;
         int fontSize = 8;
-        int itemHeight = 20;
+        int itemHeight = 17;
+        int yOffset = 10;
         int idx = data.selectedIndex;
         int n = data.numItems;
 
-        drawShape::scroll(u8g2, scrollPercent(idx, n));
+        drawShape::scroll(u8g2, scrollPercent(idx, n), yOffset);
 
         int textClipRight = 120;
         u8g2_SetClipWindow(u8g2, 0, 0, textClipRight, SCREEN_HEIGHT);
@@ -373,29 +381,29 @@ namespace ui {
         u8g2_SetFont(u8g2, Font::base);
         if (n > 1) {
             int prevIdx = (idx - 1 + n) % n;
-            u8g2_DrawUTF8(u8g2, leftPadding, itemHeight * 1,
+            u8g2_DrawUTF8(u8g2, leftPadding, itemHeight * 1 + yOffset,
                           data.items[prevIdx]);
 
             int nextIdx = (idx + 1) % n;
-            u8g2_DrawUTF8(u8g2, leftPadding, itemHeight * 3,
+            u8g2_DrawUTF8(u8g2, leftPadding, itemHeight * 3 + yOffset,
                           data.items[nextIdx]);
         }
 
         u8g2_SetFont(u8g2, Font::bold);
-        u8g2_DrawUTF8(u8g2, leftPadding, itemHeight * 2, data.items[idx]);
+        u8g2_DrawUTF8(u8g2, leftPadding, itemHeight * 2 + yOffset, data.items[idx]);
 
         u8g2_SetMaxClipWindow(u8g2);
 
         int visibleItems = 3;
         u8g2_DrawRFrame(
             u8g2, 0,
-            itemHeight * (visibleItems / 2) - (fontSize - itemHeight) / 2, 120,
+            itemHeight * (visibleItems / 2) - (fontSize - itemHeight) / 2 + yOffset, 120,
             itemHeight, 2);
 
-        u8g2_DrawLine(u8g2, 2, 2 + fontSize / 2 + 2 * itemHeight, 119,
-                      2 + fontSize / 2 + 2 * itemHeight);
-        u8g2_DrawLine(u8g2, 120, 4 + fontSize / 2 + itemHeight, 120,
-                      1 + fontSize / 2 + 2 * itemHeight);
+        u8g2_DrawLine(u8g2, 2, 2 + fontSize / 2 + 2 * itemHeight + yOffset, 119,
+                      2 + fontSize / 2 + 2 * itemHeight + yOffset);
+        u8g2_DrawLine(u8g2, 120, 4 + fontSize / 2 + itemHeight + yOffset, 120,
+                      1 + fontSize / 2 + 2 * itemHeight + yOffset);
 
         u8g2_SetMaxClipWindow(u8g2);
     }
