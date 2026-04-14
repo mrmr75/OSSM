@@ -1,5 +1,5 @@
-#ifndef OSSM_SOFTWARE_PINS_CPP
-#define OSSM_SOFTWARE_PINS_CPP
+#ifndef V2_BOARD_PINS
+#define V2_BOARD_PINS
 
 /**
  * Pin definitions for the OSSM
@@ -18,8 +18,6 @@
  *
  * ```
  */
-#ifndef BOARD_VERSION
-#define GPIO_SERVICE_ENABLED 1
 
 namespace Pins {
 
@@ -46,7 +44,7 @@ namespace Pins {
         constexpr int motorEnablePin = 26;
 
         // define the IO pin the emergency stop switch is connected to
-        constexpr int stopPin = 19;
+        constexpr int stopPin = 32;
         // define the IO pin where the limit(homingStart) switch(es) are
         // connected to (switches in series in normally open setup) Switches
         // wired from IO pin to ground.
@@ -93,14 +91,5 @@ namespace Pins {
 #endif
         constexpr int encoderStepsPerNotch = 2;
     }
-
 }
-#elif BOARD_VERSION == 2
-    #include "Pins_v2.h"
-#elif BOARD_VERSION == 4
-    #include "Pins_v4.h"
-#elif BOARD_VERSION == 6
-    #include "Pins_v6.h"
-#endif
-
-#endif  // OSSM_SOFTWARE_PINS_CPP
+#endif  // V2_BOARD_PINS
