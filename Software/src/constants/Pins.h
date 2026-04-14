@@ -96,6 +96,8 @@ namespace Pins {
 }
 #elif BOARD_VERSION == 4
     #include "Pins_v4.h"
+#elif BOARD_VERSION == 6
+    #include "Pins_v6.h"
 #endif
 
 #endif  // OSSM_SOFTWARE_PINS_CPP
