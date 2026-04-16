@@ -19,6 +19,8 @@ using namespace sml;
 
 namespace homing {
 
+volatile bool stopHoming = false;
+
 void clearHoming() {
     ESP_LOGD("Homing", "Homing started");
 
@@ -50,7 +52,7 @@ static void startHomingTask(void *pvParameters) {
     vTaskDelete(nullptr);
     return;
 #endif
-
+    stopHoming = false;
     // Stroke Engine and Simple Penetration treat this differently.
     stepper->enableOutputs();
     stepper->setDirectionPin(Pins::Driver::motorDirectionPin, false);
@@ -78,7 +80,7 @@ static void startHomingTask(void *pvParameters) {
 
             // Clear homing active flag for LED indication
             setHomingActive(false);
-
+            Tasks::activeBackgroundTaskH = nullptr;
             stateMachine->process_event(Error{});
             break;
         }
@@ -91,16 +93,19 @@ static void startHomingTask(void *pvParameters) {
         ESP_LOGV("Homing", "Current: %f", current);
         bool isCurrentOverLimit = homing_logic::isCurrentOverLimit(
             current, 0, Config::Driver::sensorlessCurrentLimit);
-
-        if (!isCurrentOverLimit) {
+        if (isCurrentOverLimit) {
+            ESP_LOGD("Homing", "Current over limit detected: %f, limit: %f", current, Config::Driver::sensorlessCurrentLimit);
+        } else if (stopHoming) {
+            ESP_LOGD("Homing", "Homing stopped by user");
+        } else {
             vTaskDelay(10);  // Increased from 1ms to 10ms to reduce CPU load
             continue;
         }
 
-        ESP_LOGD("Homing", "Current over limit: %f", current);
         stepper->stopMove();
 
         stepper->setSpeedInHz(250_mm);
+
         // step away from the hard stop, with your hands in the air!
         int32_t currentPosition = stepper->getCurrentPosition();
         stepper->moveTo(currentPosition - sign * Config::Driver::homingOffsetMn,
@@ -123,7 +128,7 @@ static void startHomingTask(void *pvParameters) {
 
         // Clear homing active flag for LED indication
         setHomingActive(false);
-
+        Tasks::activeBackgroundTaskH = nullptr;
         stateMachine->process_event(HomingDone{});
         break;
     };

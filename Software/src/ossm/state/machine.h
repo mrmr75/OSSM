@@ -26,8 +26,10 @@ struct OSSMStateMachine {
 
             "homing"_s / startHoming = "homing.forward"_s,
             "homing.forward"_s + error = "error"_s,
+            "homing.forward"_s + buttonPress / stopHoming = "homing.forward"_s,
             "homing.forward"_s + homingDone / startHoming = "homing.backward"_s,
             "homing.backward"_s + error = "error"_s,
+            "homing.backward"_s + buttonPress / stopHoming = "homing.backward"_s,
             "homing.backward"_s + homingDone[(isStrokeTooShort)] = "error"_s,
             "homing.backward"_s + homingDone[isFirstHomed] / setHomed = "menu"_s,
             "homing.backward"_s + homingDone[(isOption(Menu::SimplePenetration))] / setHomed = "simplePenetration"_s,

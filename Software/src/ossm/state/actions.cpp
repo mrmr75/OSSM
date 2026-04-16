@@ -37,6 +37,10 @@ void ossmStartHoming() {
     homing::startHoming();
 }
 
+void ossmStopHoming() {
+    homing::stopHoming = true;
+}
+
 void ossmDrawPlayControls() {
     play_controls::drawPlayControls();
 }

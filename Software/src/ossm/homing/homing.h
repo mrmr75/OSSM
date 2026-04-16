@@ -3,6 +3,7 @@
 
 namespace homing {
 
+extern volatile bool stopHoming;
 /**
  * Clear and prepare for homing
  * Sets up stepper parameters and resets calibration state

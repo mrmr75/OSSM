@@ -51,6 +51,11 @@ void __attribute__((weak)) setup() {
     // Initialize header bar task
     initHeaderBar();
 
+    // // link functions to be called on events.
+    button.attachClick([]() { stateMachine->process_event(ButtonPress{});});
+    button.attachDoubleClick([]() { stateMachine->process_event(DoublePress{});});
+    button.attachLongPressStart([]() { stateMachine->process_event(LongPress{});});
+
     // Create OSSM instance for backward compatibility (BLE command handling)
     ossm = new OSSM();
 
@@ -60,13 +65,6 @@ void __attribute__((weak)) setup() {
     // ialize LED for BLE and machine status indication
     ESP_LOGI("MAIN", "LED initialized for BLE and machine status indication");
     updateLEDForMachineStatus();  // Set initial LED state
-
-    // // link functions to be called on events.
-    button.attachClick([]() { stateMachine->process_event(ButtonPress{}); });
-    button.attachDoubleClick(
-        []() { stateMachine->process_event(DoublePress{}); });
-    button.attachLongPressStart(
-        []() { stateMachine->process_event(LongPress{}); });
 
     xTaskCreatePinnedToCore(
         [](void *pvParameters) {
@@ -98,6 +96,7 @@ void __attribute__((weak)) setup() {
         },
         "initNimbleTask", 32 * configMINIMAL_STACK_SIZE, nullptr,
         configMAX_PRIORITIES - 1, nullptr, 0);
+
 };
 
 void __attribute__((weak)) loop() { vTaskDelete(nullptr); };
