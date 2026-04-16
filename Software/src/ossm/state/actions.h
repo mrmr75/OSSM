@@ -31,6 +31,13 @@ void ossmCheckPairing();
 void ossmDrawPairingSuccess();
 void ossmResetWiFi();
 void ossmRestart();
+void ossmPauseStrokeEngine();
+void ossmResumeStrokeEngine();
+void ossmEndStrokeEngineAndReturnHome();
+void ossmDrawPauseMenu();
+void ossmPauseSimplePenetration();
+void ossmResumeSimplePenetration();
+void ossmEndSimplePenetrationAndReturnHome();
 
 namespace actions {
 
@@ -95,6 +102,14 @@ namespace actions {
     constexpr auto setNotHomed = []() { ossmSetNotHomed(); };
 
     constexpr auto restart = []() { ossmRestart(); };
+
+    constexpr auto pauseStrokeEngine = []() { ossmPauseStrokeEngine(); };
+    constexpr auto resumeStrokeEngine = []() { ossmResumeStrokeEngine(); };
+    constexpr auto endStrokeEngineAndReturnHome = []() { ossmEndStrokeEngineAndReturnHome(); };
+    constexpr auto drawPauseMenu = []() { ossmDrawPauseMenu(); };
+    constexpr auto pauseSimplePenetration = []() { ossmPauseSimplePenetration(); };
+    constexpr auto resumeSimplePenetration = []() { ossmResumeSimplePenetration(); };
+    constexpr auto endSimplePenetrationAndReturnHome = []() { ossmEndSimplePenetrationAndReturnHome(); };
 
 }  // namespace actions
 

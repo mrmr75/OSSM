@@ -9,6 +9,22 @@ namespace simple_penetration {
      */
     void startSimplePenetration();
 
+    /**
+     * Pause simple penetration by stopping the stepper.
+     * The background task remains alive; motion resumes when resumeSimplePenetration() is called.
+     */
+    void pauseSimplePenetration();
+
+    /**
+     * Resume simple penetration after a pause.
+     */
+    void resumeSimplePenetration();
+
+    /**
+     * Stop and return to home position.
+     */
+    void returnHome();
+
 }  // namespace simple_penetration
 
 #endif  // OSSM_SIMPLE_PENETRATION_H

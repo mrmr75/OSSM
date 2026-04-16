@@ -8,6 +8,9 @@ namespace stroke_engine {
  * Uses StrokeEngine library for complex motion patterns
  */
 void startStrokeEngine();
+void pauseStrokeEngine();
+void resumeStrokeEngine();
+void returnHome();
 
 }  // namespace stroke_engine
 

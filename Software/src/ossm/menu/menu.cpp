@@ -11,6 +11,7 @@
 #include "ui.h"
 #include "utils/analog.h"
 #include "components/HeaderBar.h"
+#include "ossm/pages/pause.h"
 
 namespace sml = boost::sml;
 using namespace sml;
@@ -94,5 +95,8 @@ void drawMenu() {
 template void drawMenuImpl<Menu, 8u>(const char* headerText,
                                      const char* const (&menuStrings)[8u],
                                      Menu& currentOption);
+template void drawMenuImpl<pause_menu::PauseMenu, 2u>(const char* headerText,
+                                                  const char* const (&menuStrings)[2u],
+                                                  pause_menu::PauseMenu& currentOption);
 
 }  // namespace menu

@@ -4,6 +4,7 @@
 #include <WiFi.h>
 
 #include "../../constants/Menu.h"
+#include "../pages/pause.h"
 #include "context.h"
 
 // Forward declarations for guard implementations (defined in guards.cpp)
@@ -43,6 +44,11 @@ namespace guards {
 
     // Guard for checking if online
     constexpr auto isOnline = []() { return WiFiClass::status() == WL_CONNECTED; };
+
+    // Guard for checking pause menu selection
+    constexpr auto isPauseOption = [](pause_menu::PauseMenu option) {
+        return [option]() { return pause_menu::pauseMenuOption == option; };
+    };
 
     auto isFrom = [](ReturnState c) {
         return [c](const MachineContext& ctx) { return ctx.returnState == c; };

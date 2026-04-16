@@ -85,7 +85,8 @@ typedef enum {
     PATTERN,     //!< Stroke Engine is running and servo is moving according to
                  //!< defined pattern.
     SETUPDEPTH,  //!< Interactive adjustment mode to setup depth and stroke
-    STREAMING    //!< Tracks the depth-position whenever depth is updated.
+    STREAMING,   //!< Tracks the depth-position whenever depth is updated.
+    PAUSED       //!< Motion paused, pattern state preserved, can resume exactly
 } ServoState;
 
 // Verbose strings of states for debugging purposes
@@ -231,6 +232,21 @@ class StrokeEngine {
     */
     /**************************************************************************/
     void stopMotion();
+
+    /**************************************************************************/
+    /*!
+      @brief  Pauses current motion preserving all pattern state. Can be resumed.
+    */
+    /**************************************************************************/
+    void pause();
+
+    /**************************************************************************/
+    /*!
+      @brief  Resumes motion from exactly where it was paused.
+      @return TRUE on successful resume, FALSE if not in paused state
+    */
+    /**************************************************************************/
+    bool resume();
 
     /**************************************************************************/
     /*!

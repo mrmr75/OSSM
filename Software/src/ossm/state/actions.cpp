@@ -6,6 +6,7 @@
 #include "ossm/pages/pairing.h"
 #include "ossm/pages/hello.h"
 #include "ossm/pages/help.h"
+#include "ossm/pages/pause.h"
 #include "ossm/pages/preflight.h"
 #include "ossm/pages/update.h"
 #include "ossm/pages/wifi.h"
@@ -23,6 +24,7 @@
 #include "services/tasks.h"
 #include "services/wm.h"
 #include "utils/random.h"
+#include "constants/LogTags.h"
 
 void ossmDrawHello() {
     pages::drawHello();
@@ -207,4 +209,39 @@ void ossmResetWiFi() {
 
 void ossmRestart() {
     ESP.restart();
+}
+
+void ossmPauseStrokeEngine() {
+    stroke_engine::pauseStrokeEngine();
+}
+
+void ossmResumeStrokeEngine() {
+    stroke_engine::resumeStrokeEngine();
+    play_controls::drawPlayControls();
+    ESP_LOGI(STARTUP_TAG, "Stroke engine resumed");
+}
+
+void ossmEndStrokeEngineAndReturnHome() {
+    stroke_engine::returnHome();
+    Tasks::cancelActiveBackgroundTask();
+    ESP_LOGI(STARTUP_TAG, "Stroke Engine session ended, returned to home position");
+}
+
+void ossmEndSimplePenetrationAndReturnHome() {
+    simple_penetration::returnHome();
+    Tasks::cancelActiveBackgroundTask();
+    ESP_LOGI(STARTUP_TAG, "Simple Penetration session ended, returned to home position");
+}
+
+void ossmDrawPauseMenu() {
+    pause_menu::drawPauseMenu();
+}
+
+void ossmPauseSimplePenetration() {
+    simple_penetration::pauseSimplePenetration();
+}
+
+void ossmResumeSimplePenetration() {
+    simple_penetration::resumeSimplePenetration();
+    play_controls::drawPlayControls();
 }

@@ -16,6 +16,8 @@ using namespace sml;
 
 namespace simple_penetration {
 
+static volatile bool isPaused = false;
+
 static void startSimplePenetrationTask(void *pvParameters) {
     int fullStrokeCount = 0;
     static int32_t targetPosition = 0;
@@ -41,7 +43,7 @@ static void startSimplePenetrationTask(void *pvParameters) {
             abs(targetPosition - stepper->getCurrentPosition()) == 0;
 
         // If the speed is zero, then stop the stepper and wait for the next
-        if (isSpeedZero) {
+        if (isSpeedZero || isPaused) {
             stepper->stopMove();
             stopped = true;
             vTaskDelay(100);
@@ -100,10 +102,31 @@ static void startSimplePenetrationTask(void *pvParameters) {
 }
 
 void startSimplePenetration() {
+    isPaused = false;
     int stackSize = 10 * configMINIMAL_STACK_SIZE;
 
     Tasks::startBackgroundTask(startSimplePenetrationTask,
                             "startSimplePenetrationTask", nullptr);
+}
+
+void pauseSimplePenetration() {
+    isPaused = true;
+    stepper->stopMove();
+    ESP_LOGI("SimplePenetration", "Simple penetration paused");
+}
+
+void resumeSimplePenetration() {
+    isPaused = false;
+    // The background task will naturally resume movement on the next loop
+    // iteration once the stepper finishes stopping.
+    ESP_LOGI("SimplePenetration", "Simple penetration resumed");
+}
+
+void returnHome() {
+    stepper->stopMove();
+    stepper->setSpeedInHz(25.0 * (1_mm));
+    stepper->moveTo(0, false);
+    ESP_LOGI("SimplePenetration", "Simple penetration returning home");
 }
 
 }  // namespace simple_penetration

@@ -9,6 +9,7 @@
 #include "../../utils/update.h"
 #include "homing.h"
 #include "preflight.h"
+#include "pause.h"
 
 namespace sml = boost::sml;
 
@@ -49,8 +50,10 @@ struct OSSMStateMachine {
             state<HomingStateMachine> + event<Return> [isFrom(ReturnState::SimplePenetration)] = "simplePenetration"_s,
             state<PreflightStateMachine> + event<Return> [isFrom(ReturnState::SimplePenetration)] = "simplePenetration"_s,
             "simplePenetration"_s / (resetSettingsSimplePen, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
-            "simplePenetration.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
+            "simplePenetration.idle"_s + longPress / (pauseSimplePenetration, setCaller(ReturnState::SimplePenetration)) = state<PauseStateMachine>,
             "simplePenetration.idle"_s + event<ReturnToMenu> / emergencyStop = "menu"_s,
+            state<PauseStateMachine> + event<Resume>       [isFrom(ReturnState::SimplePenetration)] / resumeSimplePenetration = "simplePenetration.idle"_s,
+            state<PauseStateMachine> + event<ReturnToMenu> [isFrom(ReturnState::SimplePenetration)] / endSimplePenetrationAndReturnHome = "menu"_s,
 
             "strokeEngine"_s [isNotHomed] / setCaller(ReturnState::Stroke) = state<HomingStateMachine>,
             "strokeEngine"_s [!isPreflightSafe] / setCaller(ReturnState::Stroke) = state<PreflightStateMachine>,
@@ -59,11 +62,14 @@ struct OSSMStateMachine {
             "strokeEngine"_s / (resetSettingsStrokeEngine, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
             "strokeEngine.idle"_s + buttonPress / incrementControlStrokeEngine = "strokeEngine.idle"_s,
             "strokeEngine.idle"_s + doublePress / drawPatternControls = "strokeEngine.pattern"_s,
+            "strokeEngine.idle"_s + longPress / (pauseStrokeEngine, setCaller(ReturnState::Stroke)) = state<PauseStateMachine>,
+            "strokeEngine.idle"_s + event<ReturnToMenu> / emergencyStop = "menu"_s,
+            state<PauseStateMachine> + event<Resume>       [isFrom(ReturnState::Stroke)] / resumeStrokeEngine = "strokeEngine.idle"_s,
+            state<PauseStateMachine> + event<ReturnToMenu> [isFrom(ReturnState::Stroke)] / endStrokeEngineAndReturnHome = "menu"_s,
+
             "strokeEngine.pattern"_s + buttonPress / drawPlayControls = "strokeEngine.idle"_s,
             "strokeEngine.pattern"_s + doublePress / drawPlayControls = "strokeEngine.idle"_s,
             "strokeEngine.pattern"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
-            "strokeEngine.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
-            "strokeEngine.idle"_s + event<ReturnToMenu> / emergencyStop = "menu"_s,
             "strokeEngine.pattern"_s + event<ReturnToMenu> / emergencyStop = "menu"_s,
             "strokeEngine.preflight"_s + event<ReturnToMenu> = "menu"_s,
 

@@ -161,4 +161,20 @@ void startStrokeEngine() {
     Tasks::startPublishingTask(publishStateTask, "publishStateTask", nullptr);
 }
 
+void pauseStrokeEngine() {
+    Stroker.pause();
+    ESP_LOGI(STARTUP_TAG, "Stroke engine paused");
+}
+
+void resumeStrokeEngine() {
+    Stroker.resume();
+    ESP_LOGI(STARTUP_TAG, "Stroke engine resumed");
+}
+
+void returnHome() {
+    Stroker.moveToMin(25.0f);
+    Stroker.stopMotion();
+    ESP_LOGI(STARTUP_TAG, "Stroke engine returning home");
+}
+
 }  // namespace stroke_engine

@@ -45,6 +45,44 @@ void StrokeEngine::begin(machineGeometry *physics, motorProperties *motor,
 #endif
 }
 
+void StrokeEngine::pause() {
+    if (_state == PATTERN) {
+        // Stop movement immediately with maximum safe acceleration
+        _servo->setAcceleration(_maxStepAcceleration);
+        _servo->applySpeedAcceleration();
+        _servo->stopMove();
+
+        // Set state to PAUSED - stroking task will suspend itself automatically
+        _state = PAUSED;
+
+#ifdef DEBUG_TALKATIVE
+        Serial.println("Motion paused at position: " + String(_servo->getCurrentPosition()));
+        Serial.println("Stroke Engine State: " + verboseState[_state]);
+#endif
+    }
+}
+
+bool StrokeEngine::resume() {
+    if (_state == PAUSED) {
+        // Restore state to PATTERN
+        _state = PATTERN;
+
+        // Resume the suspended stroking task
+        if (_taskStrokingHandle != NULL) {
+            vTaskResume(_taskStrokingHandle);
+        }
+
+#ifdef DEBUG_TALKATIVE
+        Serial.println("Motion resumed from paused position");
+        Serial.println("Stroke Engine State: " + verboseState[_state]);
+#endif
+
+        return true;
+    }
+    return false;
+}
+
+
 void StrokeEngine::setSpeed(float speed, bool applyNow = false) {
     // Update pattern with new speed, will be used with the next stroke or on
     // update request

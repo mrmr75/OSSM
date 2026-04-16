@@ -29,12 +29,12 @@ struct WifiDone {};       // WiFi portal done
 struct PairingDone {};       // BLE pairing done
 
 struct Error {};
-struct EmergencyStop {};
 
 struct BleClick {};
 struct ReturnToMenu {};
 struct StrokeEngineReady{};
 struct Return{};
+struct Resume{};
 
 // Definitions to make the table easier to read.
 static auto bleClick = sml::event<BleClick>;
@@ -48,4 +48,5 @@ static auto pairingDone = sml::event<PairingDone>;
 static auto wifiDone = sml::event<WifiDone>;
 static auto error = sml::event<Error>;
 static auto returnToMenu = sml::event<ReturnToMenu>;
+static auto resume = sml::event<Resume>;
 #endif  // OSSM_SOFTWARE_EVENTS_H
