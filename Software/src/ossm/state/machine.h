@@ -10,6 +10,7 @@
 #include "homing.h"
 #include "preflight.h"
 #include "pause.h"
+#include "calibration.h"
 
 namespace sml = boost::sml;
 
@@ -30,6 +31,7 @@ struct OSSMStateMachine {
 #else
             *"idle"_s + initDone / drawHello = "firstRun"_s,
 #endif
+
             "firstRun"_s / setCaller(ReturnState::FirstRun) = state<HomingStateMachine>,
             state<HomingStateMachine> + event<Return> [isFrom(ReturnState::FirstRun)] = "menu"_s,
 
@@ -42,6 +44,7 @@ struct OSSMStateMachine {
             "menu.idle"_s + buttonPress[(isOption(Menu::Pairing)) && !isOnline] = "pairing.wifi"_s,
             "menu.idle"_s + buttonPress[(isOption(Menu::UpdateOSSM))] = "update"_s,
             "menu.idle"_s + buttonPress[(isOption(Menu::WiFiSetup))] = "wifi"_s,
+            "menu.idle"_s + buttonPress[(isOption(Menu::Calibration))] = state<CalibrationStateMachine>,
             "menu.idle"_s + buttonPress[isOption(Menu::Help)] = "help"_s,
             "menu.idle"_s + buttonPress[(isOption(Menu::Restart))] = "restart"_s,
 
@@ -81,6 +84,9 @@ struct OSSMStateMachine {
             "streaming.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
             "streaming.idle"_s + event<ReturnToMenu> / emergencyStop = "menu"_s,
             "streaming.idle"_s + buttonPress / incrementControlStreaming = "streaming.idle"_s,
+
+            state<CalibrationStateMachine> + event<ReturnToMenu> = "menu"_s,
+            state<CalibrationStateMachine> + calibrationDone = "strokeEngine.idle"_s,
 
             "pairing"_s / checkPairing = "pairing.idle"_s,
             "pairing.idle"_s + pairingDone = "pairing.success"_s,

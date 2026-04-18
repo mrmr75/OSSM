@@ -2,6 +2,7 @@
 #define SOFTWARE_SETTINGPERCENTS_H
 
 #include <optional>
+#include "ReferencePositions.h"
 
 enum class StrokePatterns {
     SimpleStroke,

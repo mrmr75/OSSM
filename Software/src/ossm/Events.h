@@ -32,6 +32,8 @@ struct Error {};
 
 struct BleClick {};
 struct ReturnToMenu {};
+
+struct CalibrationDone {};
 struct StrokeEngineReady{};
 struct Return{};
 struct Resume{};
@@ -48,5 +50,7 @@ static auto pairingDone = sml::event<PairingDone>;
 static auto wifiDone = sml::event<WifiDone>;
 static auto error = sml::event<Error>;
 static auto returnToMenu = sml::event<ReturnToMenu>;
+static auto strokeEngineReady = sml::event<StrokeEngineReady>;
+static auto calibrationDone = sml::event<CalibrationDone>;
 static auto resume = sml::event<Resume>;
 #endif  // OSSM_SOFTWARE_EVENTS_H

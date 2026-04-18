@@ -2,6 +2,7 @@
 #define OSSM_STATE_GUARDS_H
 
 #include <WiFi.h>
+#include "ossm/calibration/calibration_types.h"
 
 #include "../../constants/Menu.h"
 #include "../pages/pause.h"
@@ -49,6 +50,7 @@ namespace guards {
     constexpr auto isPauseOption = [](pause_menu::PauseMenu option) {
         return [option]() { return pause_menu::pauseMenuOption == option; };
     };
+
 
     auto isFrom = [](ReturnState c) {
         return [c](const MachineContext& ctx) { return ctx.returnState == c; };

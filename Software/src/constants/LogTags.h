@@ -11,4 +11,6 @@ static const char* HEADERBAR_TAG = "HeaderBar";
 
 static const char* NIMBLE_TAG = "NIMBLE";
 
+static const char* CALIBRATION_TAG = "Calibration";
+
 #endif  // SOFTWARE_LOGTAGS_H

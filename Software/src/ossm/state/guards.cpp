@@ -7,6 +7,7 @@
 #include "ossm/state/calibration.h"
 #include "ossm/state/menu.h"
 #include "utils/analog.h"
+#include "ossm/calibration/calibration_menu.h"
 
 bool ossmIsStrokeTooShort() {
     return homing::isStrokeTooShort();
@@ -26,3 +27,4 @@ bool ossmIsPreflightSafe() {
 Menu ossmGetMenuOption() {
     return menuState.currentOption;
 }
+

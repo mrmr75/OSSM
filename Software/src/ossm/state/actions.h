@@ -35,6 +35,11 @@ void ossmPauseStrokeEngine();
 void ossmResumeStrokeEngine();
 void ossmEndStrokeEngineAndReturnHome();
 void ossmDrawPauseMenu();
+void ossmDrawCalibrationControls();
+void ossmEndCalibrationMode();
+void ossmDrawCalibrationMenu();
+void ossmEndCalibrationMenu();
+void ossmStoreCalibrationPoint();
 void ossmPauseSimplePenetration();
 void ossmResumeSimplePenetration();
 void ossmEndSimplePenetrationAndReturnHome();
@@ -103,6 +108,17 @@ namespace actions {
 
     constexpr auto restart = []() { ossmRestart(); };
 
+    constexpr auto endCalibrationMode = []() { ossmEndCalibrationMode(); };
+
+    constexpr auto drawCalibrationMenu = []() { ossmDrawCalibrationMenu(); };
+
+    constexpr auto drawCalibrationControls = []() { ossmDrawCalibrationControls(); };
+
+    constexpr auto endCalibrationMenu = []() { ossmEndCalibrationMenu(); };
+
+    constexpr auto storeCalibrationPoint = []() { ossmStoreCalibrationPoint(); };
+
+    // This is a more complex action that involves network communication, so we define it as a lambda function
     constexpr auto pauseStrokeEngine = []() { ossmPauseStrokeEngine(); };
     constexpr auto resumeStrokeEngine = []() { ossmResumeStrokeEngine(); };
     constexpr auto endStrokeEngineAndReturnHome = []() { ossmEndStrokeEngineAndReturnHome(); };

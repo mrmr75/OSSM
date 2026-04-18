@@ -27,6 +27,7 @@ static void startStrokeEngineTask(void *pvParameters) {
         .physicalTravel = abs(calibration.measuredStrokeSteps / (1_mm)),
         .keepoutBoundary = 6.0};
     SettingPercents lastSetting = settings;
+    float lastSpeedScale = calibration.speedScale;
 
     Stroker.begin(&strokingMachine, &servoMotor, stepper);
     Stroker.thisIsHome();
@@ -36,18 +37,24 @@ static void startStrokeEngineTask(void *pvParameters) {
     Stroker.setDepth(0.01f * settings.depth * abs(measuredStrokeMm), true);
     Stroker.setStroke(0.01f * settings.stroke * abs(measuredStrokeMm), true);
 
+    ESP_LOGI("UTILS", "Signaling StrokeEngineReady");
+    stateMachine->process_event(StrokeEngineReady{});
+    ESP_LOGI("UTILS", "StrokeEngineReady processed");
+
     while (ulTaskNotifyTake(pdTRUE, 0) == 0) {
         if (isChangeSignificant(lastSetting.speed, settings.speed) ||
+            isChangeSignificant(lastSpeedScale, calibration.speedScale) ||
             wasLastSpeedCommandFromBLE()) {
             // Speed is float, so give a little wiggle room here to assume 0
-            if (settings.speed < 0.1f) {
+            if (settings.speed < 0.1f && Stroker.getState() == PATTERN) {
                 Stroker.stopMotion();
             } else if (Stroker.getState() == READY) {
                 Stroker.startPattern();
             }
 
-            Stroker.setSpeed(settings.speed * 3, true);
+            Stroker.setSpeed(settings.speed * 3 * calibration.speedScale, true);
             lastSetting.speed = settings.speed;
+            lastSpeedScale = calibration.speedScale;
         }
 
         if (lastSetting.stroke != settings.stroke) {

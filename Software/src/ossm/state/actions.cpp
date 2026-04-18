@@ -23,6 +23,11 @@
 #include "services/stepper.h"
 #include "services/tasks.h"
 #include "services/wm.h"
+#include "ossm/state/state.h"
+#include "ossm/state/error.h"
+#include "ossm/calibration/calibration.h"
+#include "ossm/calibration/calibration_menu.h"
+#include "services/tasks.h"
 #include "utils/random.h"
 #include "constants/LogTags.h"
 
@@ -64,8 +69,21 @@ void ossmResetSettingsStrokeEngine() {
 
     settings.speed = 0;
     settings.speedBLE = std::nullopt;
-    settings.stroke = 50;
-    settings.depth = 10;
+
+    // Initialize from absolute calibration points if available
+    if (calibration.refs.referencePosition.has_value()) {
+        settings.depth = calibrations::stepsToPercentage(calibration.refs.referencePosition.value());
+    } else {
+        settings.depth = 10;
+    }
+
+    if (calibration.refs.justInPosition.has_value()) {
+        float justInPct = calibrations::stepsToPercentage(calibration.refs.justInPosition.value());
+        settings.stroke = settings.depth - justInPct;
+    } else {
+        settings.stroke = 50;
+    }
+
     settings.sensation = 50;
     session.playControl = PlayControls::DEPTH;
 
@@ -236,6 +254,29 @@ void ossmEndSimplePenetrationAndReturnHome() {
 void ossmDrawPauseMenu() {
     pause_menu::drawPauseMenu();
 }
+
+void ossmDrawCalibrationControls() {
+    calibrations::drawCalibrationControls();
+}
+
+void ossmEndCalibrationMode() {
+    calibrations::endCalibrationMode();
+}
+
+void ossmDrawCalibrationMenu() {
+    calibrations::drawCalibrationMenu();
+}
+
+void ossmEndCalibrationMenu() {
+    calibrations::endCalibrationMenu();
+}
+
+void ossmStoreCalibrationPoint() {
+    // Get the selected calibration point type from the menu state
+    // The menu state is updated by the encoder navigation in the calibration menu
+    calibrations::storeCalibrationPoint(calibrations::calibrationMenuState.currentOption);
+}
+
 
 void ossmPauseSimplePenetration() {
     simple_penetration::pauseSimplePenetration();

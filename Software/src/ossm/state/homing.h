@@ -2,7 +2,6 @@
 #define OSSM_STATE_HOMING_H
 
 #include <stdint.h>
-#include "state.h"
 #include "actions.h"
 #include "guards.h"
 #include "../Events.h"
