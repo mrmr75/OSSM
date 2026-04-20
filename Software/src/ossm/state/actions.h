@@ -1,5 +1,6 @@
 #ifndef OSSM_STATE_ACTIONS_H
 #define OSSM_STATE_ACTIONS_H
+#include "context.h"
 
 // Forward declarations for action implementations (defined in actions.cpp)
 void ossmDrawHello();
@@ -32,6 +33,10 @@ void ossmResetWiFi();
 void ossmRestart();
 
 namespace actions {
+
+    auto setCaller = [](ReturnState c) {
+        return [c](MachineContext& ctx) { ctx.returnState = c; };
+    };
 
     constexpr auto drawHello = []() { ossmDrawHello(); };
 

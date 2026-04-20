@@ -13,6 +13,7 @@
 #include "services/stepper.h"
 #include "services/tasks.h"
 #include "utils/analog.h"
+#include "ossm/state/homing.h"
 
 namespace sml = boost::sml;
 using namespace sml;
@@ -20,6 +21,7 @@ using namespace sml;
 namespace homing {
 
 volatile bool stopHoming = false;
+int16_t homingDirection = -1; // -1 = forward, 1 = backward
 
 void clearHoming() {
     ESP_LOGD("Homing", "Homing started");
@@ -56,7 +58,9 @@ static void startHomingTask(void *pvParameters) {
     // Stroke Engine and Simple Penetration treat this differently.
     stepper->enableOutputs();
     stepper->setDirectionPin(Pins::Driver::motorDirectionPin, false);
-    int16_t sign = stateMachine->is("homing.backward"_s) ? 1 : -1;
+    // Direction is controlled explicitly by HomingStateMachine transitions
+    // Works correctly for partial homing sequences and single direction operations
+    int16_t sign = homingDirection;
 
     int32_t targetPositionInSteps =
         round(sign * Config::Driver::maxStrokeSteps);

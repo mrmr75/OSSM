@@ -65,7 +65,7 @@ static auto isUpdateAvailable = []() {
     return response_needUpdate;
 };
 
-auto updateOSSM = []() {
+static auto updateOSSM = []() {
     // check if we're online
 
     WiFiClient client;

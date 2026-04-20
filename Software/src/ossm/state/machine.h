@@ -7,8 +7,14 @@
 #include "guards.h"
 #include "../Events.h"
 #include "../../utils/update.h"
+#include "homing.h"
+#include "preflight.h"
 
 namespace sml = boost::sml;
+
+// Suppress known Boost.SML anonymous namespace warning
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsubobject-linkage"
 
 struct OSSMStateMachine {
     auto operator()() const {
@@ -21,21 +27,12 @@ struct OSSMStateMachine {
 #ifdef AJ_DEVELOPMENT_HARDWARE
             *"idle"_s + initDone = "menu"_s,
 #else
-            *"idle"_s + initDone / drawHello = "homing"_s,
+            *"idle"_s + initDone / drawHello = "firstRun"_s,
 #endif
+            "firstRun"_s / setCaller(ReturnState::FirstRun) = state<HomingStateMachine>,
+            state<HomingStateMachine> + event<Return> [isFrom(ReturnState::FirstRun)] = "menu"_s,
 
-            "homing"_s / startHoming = "homing.forward"_s,
-            "homing.forward"_s + error = "error"_s,
-            "homing.forward"_s + buttonPress / stopHoming = "homing.forward"_s,
-            "homing.forward"_s + homingDone / startHoming = "homing.backward"_s,
-            "homing.backward"_s + error = "error"_s,
-            "homing.backward"_s + buttonPress / stopHoming = "homing.backward"_s,
-            "homing.backward"_s + homingDone[(isStrokeTooShort)] = "error"_s,
-            "homing.backward"_s + homingDone[isFirstHomed] / setHomed = "menu"_s,
-            "homing.backward"_s + homingDone[(isOption(Menu::SimplePenetration))] / setHomed = "simplePenetration"_s,
-            "homing.backward"_s + homingDone[(isOption(Menu::StrokeEngine))] / setHomed = "strokeEngine"_s,
-            "homing.backward"_s + homingDone[(isOption(Menu::Streaming))] / setHomed = "streaming"_s,
-
+            state<PreflightStateMachine> + event<ReturnToMenu> = "menu"_s,
             "menu"_s / (drawMenu) = "menu.idle"_s,
             "menu.idle"_s + buttonPress[(isOption(Menu::SimplePenetration))] = "simplePenetration"_s,
             "menu.idle"_s + buttonPress[(isOption(Menu::StrokeEngine))] = "strokeEngine"_s,
@@ -47,19 +44,19 @@ struct OSSMStateMachine {
             "menu.idle"_s + buttonPress[isOption(Menu::Help)] = "help"_s,
             "menu.idle"_s + buttonPress[(isOption(Menu::Restart))] = "restart"_s,
 
-            "simplePenetration"_s [isNotHomed] = "homing"_s,
-            "simplePenetration"_s [isPreflightSafe] / (resetSettingsSimplePen, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
-            "simplePenetration"_s / drawPreflight = "simplePenetration.preflight"_s,
-            "simplePenetration.preflight"_s + preflightDone / (resetSettingsSimplePen, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
-            "simplePenetration.preflight"_s + longPress = "menu"_s,
+            "simplePenetration"_s [isNotHomed] / setCaller(ReturnState::SimplePenetration) = state<HomingStateMachine>,
+            "simplePenetration"_s [!isPreflightSafe] / setCaller(ReturnState::SimplePenetration) = state<PreflightStateMachine>,
+            state<HomingStateMachine> + event<Return> [isFrom(ReturnState::SimplePenetration)] = "simplePenetration"_s,
+            state<PreflightStateMachine> + event<Return> [isFrom(ReturnState::SimplePenetration)] = "simplePenetration"_s,
+            "simplePenetration"_s / (resetSettingsSimplePen, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
             "simplePenetration.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
             "simplePenetration.idle"_s + event<ReturnToMenu> / emergencyStop = "menu"_s,
 
-            "strokeEngine"_s [isNotHomed] = "homing"_s,
-            "strokeEngine"_s [isPreflightSafe] / (resetSettingsStrokeEngine, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
-            "strokeEngine"_s / drawPreflight = "strokeEngine.preflight"_s,
-            "strokeEngine.preflight"_s + preflightDone / (resetSettingsStrokeEngine, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
-            "strokeEngine.preflight"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
+            "strokeEngine"_s [isNotHomed] / setCaller(ReturnState::Stroke) = state<HomingStateMachine>,
+            "strokeEngine"_s [!isPreflightSafe] / setCaller(ReturnState::Stroke) = state<PreflightStateMachine>,
+            state<HomingStateMachine> + event<Return> [isFrom(ReturnState::Stroke)] = "strokeEngine"_s,
+            state<PreflightStateMachine> + event<Return> [isFrom(ReturnState::Stroke)] = "strokeEngine"_s,
+            "strokeEngine"_s / (resetSettingsStrokeEngine, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
             "strokeEngine.idle"_s + buttonPress / incrementControlStrokeEngine = "strokeEngine.idle"_s,
             "strokeEngine.idle"_s + doublePress / drawPatternControls = "strokeEngine.pattern"_s,
             "strokeEngine.pattern"_s + buttonPress / drawPlayControls = "strokeEngine.idle"_s,
@@ -70,11 +67,11 @@ struct OSSMStateMachine {
             "strokeEngine.pattern"_s + event<ReturnToMenu> / emergencyStop = "menu"_s,
             "strokeEngine.preflight"_s + event<ReturnToMenu> = "menu"_s,
 
-            "streaming"_s [isNotHomed] = "homing"_s,
-            "streaming"_s [isPreflightSafe] / (resetSettingsStreaming, drawPlayControls, startStreaming) = "streaming.idle"_s,
-            "streaming"_s / drawPreflight = "streaming.preflight"_s,
-            "streaming.preflight"_s + preflightDone / (resetSettingsStreaming, drawPlayControls, startStreaming) = "streaming.idle"_s,
-            "streaming.preflight"_s + longPress = "menu"_s,
+            "streaming"_s [isNotHomed] / setCaller(ReturnState::Streaming) = state<HomingStateMachine>,
+            "streaming"_s [!isPreflightSafe] / setCaller(ReturnState::Streaming) = state<PreflightStateMachine>,
+            state<HomingStateMachine> + event<Return> [isFrom(ReturnState::Streaming)] = "streaming"_s,
+            state<PreflightStateMachine> + event<Return> [isFrom(ReturnState::Streaming)] = "streaming"_s,
+            "streaming"_s / (resetSettingsStreaming, drawPlayControls, startStreaming) = "streaming.idle"_s,
             "streaming.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
             "streaming.idle"_s + event<ReturnToMenu> / emergencyStop = "menu"_s,
             "streaming.idle"_s + buttonPress / incrementControlStreaming = "streaming.idle"_s,
@@ -109,6 +106,7 @@ struct OSSMStateMachine {
             "help"_s / drawHelp = "help.idle"_s,
             "help.idle"_s + buttonPress = "menu"_s,
 
+            state<HomingStateMachine> + error = "error"_s,
             "error"_s / drawError = "error.idle"_s,
             "error.idle"_s + buttonPress / drawHelp = "error.help"_s,
             "error.help"_s + buttonPress / restart = X,
@@ -118,5 +116,7 @@ struct OSSMStateMachine {
         // clang-format on
     }
 };
+
+#pragma GCC diagnostic pop
 
 #endif  // OSSM_STATE_MACHINE_H

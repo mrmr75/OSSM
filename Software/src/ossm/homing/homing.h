@@ -1,7 +1,9 @@
 #ifndef OSSM_HOMING_HOMING_H
 #define OSSM_HOMING_HOMING_H
+#include <stdint.h>
 
 namespace homing {
+extern int16_t homingDirection; // -1 = forward, 1 = backward
 
 extern volatile bool stopHoming;
 /**

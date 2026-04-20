@@ -4,6 +4,7 @@
 #include <WiFi.h>
 
 #include "../../constants/Menu.h"
+#include "context.h"
 
 // Forward declarations for guard implementations (defined in guards.cpp)
 bool ossmIsStrokeTooShort();
@@ -36,15 +37,6 @@ namespace guards {
 #endif
     };
 
-    // Guard for checking if this is the first homing
-    constexpr auto isFirstHomed = []() {
-        static bool firstHomed = true;
-        if (firstHomed) {
-            firstHomed = false;
-            return true;
-        }
-        return false;
-    };
 
     // Guard for checking if not homed
     constexpr auto isNotHomed = []() { return ossmIsNotHomed(); };
@@ -52,6 +44,9 @@ namespace guards {
     // Guard for checking if online
     constexpr auto isOnline = []() { return WiFiClass::status() == WL_CONNECTED; };
 
+    auto isFrom = [](ReturnState c) {
+        return [c](const MachineContext& ctx) { return ctx.returnState == c; };
+    };
 }  // namespace guards
 
 #endif  // OSSM_STATE_GUARDS_H
